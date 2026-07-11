@@ -1,7 +1,9 @@
 from datetime import date
+from pathlib import Path
 from bot.parser import normalize_name, ResultRow, ParsedTournament
 from bot.parser import match_header
 from bot.parser import parse_standings_line
+from bot.parser import parse_message
 
 
 def test_normalize_lowercases_trims_collapses():
@@ -63,3 +65,26 @@ def test_parse_blank_or_header_returns_none():
     assert parse_standings_line("") is None
     assert parse_standings_line("Monday Standard Showdown (06.07.2026) final standings:") is None
     assert parse_standings_line("some random chatter") is None
+
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def test_parse_message_full():
+    content = (FIXTURES / "sample_message.txt").read_text(encoding="utf-8")
+    t = parse_message(content, ALLOWED)
+    assert t is not None
+    assert t.name == "Monday Standard Showdown"
+    assert t.event_date == date(2026, 7, 6)
+    assert len(t.rows) == 3
+    assert t.rows[0] == ResultRow(1, "James Smith", "james smith", 9, 3, 0, 0, "Temur Harmonizer")
+    assert t.rows[2].deck is None
+
+
+def test_parse_message_non_matching_header_returns_none():
+    assert parse_message("just chatting here\n1 Bob 3 1/0/0", ALLOWED) is None
+
+
+def test_parse_message_matching_header_no_rows_returns_none():
+    content = "Monday Standard Showdown (06.07.2026) final standings:\n\n(no results yet)"
+    assert parse_message(content, ALLOWED) is None

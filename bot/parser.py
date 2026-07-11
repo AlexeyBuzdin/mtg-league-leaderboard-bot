@@ -72,3 +72,17 @@ def parse_standings_line(line: str) -> ResultRow | None:
         losses=int(m.group("l")),
         deck=deck.strip() if deck else None,
     )
+
+
+def parse_message(content: str, allowed_names: list[str]) -> ParsedTournament | None:
+    lines = content.splitlines()
+    if not lines:
+        return None
+    header = match_header(lines[0], allowed_names)
+    if header is None:
+        return None
+    name, event_date = header
+    rows = [r for r in (parse_standings_line(l) for l in lines[1:]) if r is not None]
+    if not rows:
+        return None
+    return ParsedTournament(name=name, event_date=event_date, rows=rows)
