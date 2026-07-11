@@ -1,0 +1,1 @@
+# mtg-league-leaderboard-bot
