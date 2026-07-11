@@ -55,3 +55,48 @@ def test_build_embeds_chunks_when_large():
     assert len(embeds) == 2  # 50 per embed
     assert "1. Player0" in embeds[0]["description"]
     assert "51. Player50" in embeds[1]["description"]
+
+
+from bot.leaderboard import run as leaderboard_run
+
+
+class FakeStore2:
+    def __init__(self, rows):
+        self._rows = rows
+        self.window = None
+    def fetch_results_in_window(self, start, end):
+        self.window = (start, end)
+        return self._rows
+
+
+class FakeDiscord2:
+    def __init__(self):
+        self.posted = None
+    def post_embeds(self, channel_id, embeds):
+        self.posted = (channel_id, embeds)
+
+
+def test_leaderboard_run_posts_embed():
+    rows = [
+        {"points": 9, "player_key": "james smith", "player_name": "James Smith"},
+        {"points": 7, "player_key": "nikita powers", "player_name": "Nikita Powers"},
+    ]
+    store = FakeStore2(rows)
+    discord = FakeDiscord2()
+    now = datetime(2026, 7, 15, 9, 0, tzinfo=ZoneInfo("Europe/Riga"))
+    posted = leaderboard_run(discord, store, channel_id="222", now=now)
+    assert posted is True
+    assert store.window == (date(2026, 7, 1), date(2026, 7, 15))
+    channel_id, embeds = discord.posted
+    assert channel_id == "222"
+    assert "July 2026" in embeds[0]["title"]
+    assert "1. James Smith — 9 pts" in embeds[0]["description"]
+
+
+def test_leaderboard_run_skips_when_empty():
+    store = FakeStore2([])
+    discord = FakeDiscord2()
+    now = datetime(2026, 7, 15, 9, 0, tzinfo=ZoneInfo("Europe/Riga"))
+    posted = leaderboard_run(discord, store, channel_id="222", now=now)
+    assert posted is False
+    assert discord.posted is None

@@ -52,3 +52,21 @@ def build_leaderboard_embeds(totals: list[PlayerTotal], month_label: str) -> lis
             title += f" (cont.)"
         embeds.append({"title": title, "description": "\n".join(lines)})
     return embeds
+
+
+_MONTHS = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+]
+
+
+def run(discord, store, channel_id: str, now: datetime) -> bool:
+    start, end = month_window(now)
+    rows = store.fetch_results_in_window(start, end)
+    totals = aggregate_totals(rows)
+    if not totals:
+        return False
+    label = f"{_MONTHS[start.month - 1]} {start.year}"
+    embeds = build_leaderboard_embeds(totals, label)
+    discord.post_embeds(channel_id, embeds)
+    return True
