@@ -1,0 +1,23 @@
+[project]
+name = "mtg-league-leaderboard-bot"
+version = "0.1.0"
+description = "Discord bot that ingests MTG tournament results and posts a monthly leaderboard"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",
+    "supabase>=2.4",
+    "tzdata>=2024.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

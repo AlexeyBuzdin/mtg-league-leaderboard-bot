@@ -1,0 +1,24 @@
+name: ingest
+on:
+  schedule:
+    - cron: "0 21 * * *"   # ~00:00 Europe/Riga
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - run: python -m bot ingest
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          RESULTS_CHANNEL_ID: ${{ secrets.RESULTS_CHANNEL_ID }}
+          LEADERBOARD_CHANNEL_ID: ${{ secrets.LEADERBOARD_CHANNEL_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TOURNAMENT_NAMES: ${{ secrets.TOURNAMENT_NAMES }}
+          TIMEZONE: ${{ secrets.TIMEZONE }}
