@@ -56,6 +56,8 @@ class Store:
             .select("points, player_key, player_name, tournaments!inner(event_date)")
             .gte("tournaments.event_date", start.isoformat())
             .lte("tournaments.event_date", end.isoformat())
+            # Oldest-first so aggregate_totals' overwrite yields the latest name spelling.
+            .order("event_date", desc=False, foreign_table="tournaments")
             .execute()
         )
         return resp.data

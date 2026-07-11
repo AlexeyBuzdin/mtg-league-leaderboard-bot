@@ -46,6 +46,11 @@ def test_match_header_rejects_no_date():
     assert match_header("Monday Standard Showdown final standings:", ALLOWED) is None
 
 
+def test_match_header_tolerates_extra_internal_whitespace():
+    result = match_header("Monday  Standard   Showdown (06.07.2026) final standings:", ALLOWED)
+    assert result == ("Monday  Standard   Showdown", date(2026, 7, 6))
+
+
 def test_parse_row_with_deck():
     row = parse_standings_line("1    James Smith     9    3/0/0    44.3%    66.7%    45.9%     (Temur Harmonizer)")
     assert row == ResultRow(1, "James Smith", "james smith", 9, 3, 0, 0, "Temur Harmonizer")

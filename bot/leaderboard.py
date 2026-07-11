@@ -49,7 +49,7 @@ def build_leaderboard_embeds(totals: list[PlayerTotal], month_label: str) -> lis
         lines = [_line(start + i + 1, t) for i, t in enumerate(chunk)]
         title = f"\U0001f3c6 Standard League — {month_label}"
         if start > 0:
-            title += f" (cont.)"
+            title += " (cont.)"
         embeds.append({"title": title, "description": "\n".join(lines)})
     return embeds
 

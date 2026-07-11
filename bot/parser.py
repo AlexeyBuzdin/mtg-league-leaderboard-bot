@@ -39,8 +39,8 @@ def match_header(line: str, allowed_names: list[str]) -> tuple[str, date] | None
     if not m:
         return None
     name = m.group("name").strip()
-    allowed = {n.strip().lower() for n in allowed_names}
-    if name.lower() not in allowed:
+    allowed = {normalize_name(n) for n in allowed_names}
+    if normalize_name(name) not in allowed:
         return None
     try:
         event_date = datetime.strptime(m.group("date"), "%d.%m.%Y").date()

@@ -29,6 +29,10 @@ class FakeQuery:
         self.table.calls.append(("lte", col, value))
         return self
 
+    def order(self, col, *, desc=False, foreign_table=None):
+        self.table.calls.append(("order", col, desc, foreign_table))
+        return self
+
     def insert(self, payload):
         self._is_insert = True
         self.table.inserted.append(payload)
@@ -100,3 +104,5 @@ def test_fetch_results_in_window_returns_rows_and_filters():
     assert rows[0]["player_key"] == "james smith"
     assert ("gte", "tournaments.event_date", "2026-07-01") in joined.calls
     assert ("lte", "tournaments.event_date", "2026-07-31") in joined.calls
+    # Explicit oldest-first order so "latest spelling wins" is deterministic.
+    assert ("order", "event_date", False, "tournaments") in joined.calls
