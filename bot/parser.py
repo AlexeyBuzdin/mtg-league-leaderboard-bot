@@ -47,3 +47,28 @@ def match_header(line: str, allowed_names: list[str]) -> tuple[str, date] | None
     except ValueError:
         return None
     return name, event_date
+
+
+_ROW_RE = re.compile(
+    r"^\s*(?P<standing>\d+)\s+(?P<name>.+?)\s+(?P<points>\d+)\s+"
+    r"(?P<w>\d+)/(?P<d>\d+)/(?P<l>\d+)"
+    r"(?:.*\((?P<deck>[^)]+)\))?.*$"
+)
+
+
+def parse_standings_line(line: str) -> ResultRow | None:
+    m = _ROW_RE.match(line)
+    if not m:
+        return None
+    name = m.group("name").strip()
+    deck = m.group("deck")
+    return ResultRow(
+        standing=int(m.group("standing")),
+        player_name=name,
+        player_key=normalize_name(name),
+        points=int(m.group("points")),
+        wins=int(m.group("w")),
+        draws=int(m.group("d")),
+        losses=int(m.group("l")),
+        deck=deck.strip() if deck else None,
+    )
