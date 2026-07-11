@@ -422,13 +422,13 @@ Expected: FAIL — `ImportError: cannot import name 'parse_standings_line'`
 
 - [ ] **Step 3: Write minimal implementation (append to `bot/parser.py`)**
 
-Note: the `(?:.*\(...\))?` group is greedy so a present deck is captured at the end; when absent the whole optional group is skipped. The three percentage columns between W/D/L and the deck are ignored.
+Note: the `(?:.*\(...\))?` group is greedy so a present deck is captured at the end; when absent the whole optional group is skipped. The trailing `.*$` (not `\s*$`) is required so the ignored percentage columns between W/D/L and the deck are consumed when no deck is present.
 
 ```python
 _ROW_RE = re.compile(
     r"^\s*(?P<standing>\d+)\s+(?P<name>.+?)\s+(?P<points>\d+)\s+"
     r"(?P<w>\d+)/(?P<d>\d+)/(?P<l>\d+)"
-    r"(?:.*\((?P<deck>[^)]+)\))?\s*$"
+    r"(?:.*\((?P<deck>[^)]+)\))?.*$"
 )
 
 
