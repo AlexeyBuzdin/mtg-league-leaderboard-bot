@@ -1,7 +1,8 @@
 name: leaderboard
 on:
-  schedule:
-    - cron: "0 7 * * 1"    # Mondays ~10:00 Europe/Riga
+  # Scheduled runs paused for now — re-enable by uncommenting the schedule block.
+  # schedule:
+  #   - cron: "0 7 * * 1"    # Mondays ~10:00 Europe/Riga
   workflow_dispatch:
 
 jobs:

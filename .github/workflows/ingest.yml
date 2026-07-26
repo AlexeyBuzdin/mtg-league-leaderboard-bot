@@ -1,7 +1,8 @@
 name: ingest
 on:
-  schedule:
-    - cron: "0 21 * * *"   # ~00:00 Europe/Riga
+  # Scheduled runs paused for now — re-enable by uncommenting the schedule block.
+  # schedule:
+  #   - cron: "0 21 * * *"   # ~00:00 Europe/Riga
   workflow_dispatch:
 
 jobs:
