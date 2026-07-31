@@ -73,3 +73,33 @@ def test_parse_tournament_detects_second_round():
 
 def test_parse_tournament_returns_none_for_chatter():
     assert parse_tournament("just some chatter\nnothing here") is None
+
+
+def test_parse_tournament_handles_bye_minimal():
+    content = (
+        "1\nJames Doe\n1-0-0\n2\n0\nAlexey Doe\n0-1-0\n"
+        "3\nRaitis Doe\n1-0-0\n"           # bye
+        "1\nJames Doe\n2-0-0\n2\n1\nAlexey Doe\n0-2-0\n"  # round 2 opens (pairing==1)
+    )
+    rows = parse_tournament(content)
+    byes = [r for r in rows if r.opponent_key is None]
+    assert len(byes) == 1
+    bye = byes[0]
+    assert bye.player_key == "raitis doe"
+    assert bye.round == 1
+    assert bye.pairing == 3
+    assert bye.game_wins is None
+    assert (bye.record_wins, bye.record_draws, bye.record_losses) == (1, 0, 0)
+    assert any(r.round == 2 for r in rows)
+
+
+def test_parse_tournament_bye_with_trailing_score_resyncs():
+    content = (
+        "3\nRaitis Doe\n1-0-0\n2\n0\n"     # bye-ish with stray scores, no opponent name/record
+        "1\nJames Doe\n1-0-0\n2\n0\nAlexey Doe\n0-1-0\n"
+    )
+    rows = parse_tournament(content)
+    assert any(r.player_key == "raitis doe" and r.opponent_key is None for r in rows)
+    james = next(r for r in rows if r.player_key == "james doe")
+    assert james.opponent_key == "alexey doe"
+    assert james.game_wins == 2
