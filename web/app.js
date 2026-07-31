@@ -11,8 +11,9 @@ async function boot() {
     if (!response.ok) throw new Error('bad status');
     state.tournaments = (await response.json()).tournaments;
   } catch {
-    document.getElementById('lb-body').innerHTML =
-      '<div class="empty">Couldn\'t load data.</div>';
+    const message = '<div class="empty">Couldn\'t load data.</div>';
+    document.getElementById('lb-body').innerHTML = message;
+    document.getElementById('td-body').innerHTML = message;
     return;
   }
   setupTabs();

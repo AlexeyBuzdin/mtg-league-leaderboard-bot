@@ -17,11 +17,12 @@ function pairingRow(pairing) {
   }
   const p2 = pairing.player2;
   const p1Won = p1.game_wins > p2.game_wins;
+  const p2Won = p2.game_wins > p1.game_wins;
   return (
     `<div class="pairing">` +
     `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}<span class="name">${p1.name}</span>${recordChip(p1.record)}</div>` +
     `<div class="score">${p1.game_wins}-${p2.game_wins}</div>` +
-    `<div class="side right ${p1Won ? '' : 'win'}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${p1Won ? '' : MARK}</div>` +
+    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${p2Won ? MARK : ''}</div>` +
     `</div>`
   );
 }
