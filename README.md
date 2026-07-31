@@ -6,9 +6,9 @@ monthly leaderboard. Runs as two GitHub Actions cron jobs.
 ## How it works
 
 - **Daily `ingest`** polls the results channel (Discord REST), parses messages
-  whose header matches `<Tournament Name> (dd.mm.yyyy) final standings:` for a
-  configured tournament name, and stores standings in Supabase (deduplicated by
-  Discord message ID).
+  containing round-by-round Swiss pairings, and stores per-player round records
+  in Supabase (deduplicated by Discord message ID; tournament date taken from the
+  message timestamp).
 - **Weekly `leaderboard`** sums points per attendee for the current calendar
   month and posts a rich embed to the leaderboard channel.
 
@@ -29,7 +29,7 @@ monthly leaderboard. Runs as two GitHub Actions cron jobs.
 ### 3. GitHub secrets
 Add these repository secrets (Settings -> Secrets -> Actions):
 `DISCORD_BOT_TOKEN`, `RESULTS_CHANNEL_ID`, `LEADERBOARD_CHANNEL_ID`,
-`SUPABASE_URL`, `SUPABASE_KEY`, `TOURNAMENT_NAMES`, `TIMEZONE`.
+`SUPABASE_URL`, `SUPABASE_KEY`, `TIMEZONE`.
 
 ## Local development
 
