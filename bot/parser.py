@@ -2,87 +2,103 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import date, datetime
+
+_RECORD_RE = re.compile(r"^(\d+)\s*[–—-]\s*(\d+)\s*[–—-]\s*(\d+)$")
 
 
 @dataclass
-class ResultRow:
-    standing: int
+class PlayerRound:
+    round: int
+    pairing: int
     player_name: str
     player_key: str
-    points: int
-    wins: int
-    draws: int
-    losses: int
-    deck: str | None
-
-
-@dataclass
-class ParsedTournament:
-    name: str
-    event_date: date
-    rows: list[ResultRow]
+    game_wins: int | None
+    opponent_name: str | None
+    opponent_key: str | None
+    opponent_game_wins: int | None
+    record_wins: int
+    record_draws: int
+    record_losses: int
 
 
 def normalize_name(name: str) -> str:
-    return " ".join(name.split()).lower()
+    return " ".join(name.split()).casefold()
 
 
-_HEADER_RE = re.compile(
-    r"^(?P<name>.+?)\s*\((?P<date>\d{2}\.\d{2}\.\d{4})\)\s*final standings:?\s*$",
-    re.IGNORECASE,
-)
-
-
-def match_header(line: str, allowed_names: list[str]) -> tuple[str, date] | None:
-    m = _HEADER_RE.match(line.strip())
+def parse_record(token: str) -> tuple[int, int, int] | None:
+    m = _RECORD_RE.match(token.strip())
     if not m:
         return None
-    name = m.group("name").strip()
-    allowed = {normalize_name(n) for n in allowed_names}
-    if normalize_name(name) not in allowed:
-        return None
-    try:
-        event_date = datetime.strptime(m.group("date"), "%d.%m.%Y").date()
-    except ValueError:
-        return None
-    return name, event_date
+    return int(m.group(1)), int(m.group(2)), int(m.group(3))
 
 
-_ROW_RE = re.compile(
-    r"^\s*(?P<standing>\d+)\s+(?P<name>.+?)\s+(?P<points>\d+)\s+"
-    r"(?P<w>\d+)/(?P<d>\d+)/(?P<l>\d+)"
-    r"(?:.*\((?P<deck>[^)]+)\))?.*$"
-)
+def _is_record(token: str) -> bool:
+    return _RECORD_RE.match(token.strip()) is not None
 
 
-def parse_standings_line(line: str) -> ResultRow | None:
-    m = _ROW_RE.match(line)
-    if not m:
-        return None
-    name = m.group("name").strip()
-    deck = m.group("deck")
-    return ResultRow(
-        standing=int(m.group("standing")),
+def _is_int(token: str) -> bool:
+    return token.isdigit()
+
+
+def _is_name(token: str) -> bool:
+    return not _is_int(token) and not _is_record(token)
+
+
+def parse_tournament(content: str) -> list[PlayerRound] | None:
+    tokens = [ln.strip() for ln in content.splitlines() if ln.strip()]
+    rows: list[PlayerRound] = []
+    round_no = 0
+    i = 0
+    n = len(tokens)
+    while i < n:
+        # A pairing starts with: INT (pairing#), NAME (player1), RECORD (player1).
+        if not (
+            i + 2 < n
+            and _is_int(tokens[i])
+            and _is_name(tokens[i + 1])
+            and _is_record(tokens[i + 2])
+        ):
+            i += 1  # resync: skip stray token
+            continue
+        pairing = int(tokens[i])
+        p1_name = tokens[i + 1]
+        p1_rec = parse_record(tokens[i + 2])
+        i += 3
+        if pairing == 1:
+            round_no += 1
+        # Player 2 present iff the next tokens are INT, INT, NAME, RECORD.
+        has_p2 = (
+            i + 3 < n
+            and _is_int(tokens[i])
+            and _is_int(tokens[i + 1])
+            and _is_name(tokens[i + 2])
+            and _is_record(tokens[i + 3])
+        )
+        if has_p2:
+            w1 = int(tokens[i])
+            w2 = int(tokens[i + 1])
+            p2_name = tokens[i + 2]
+            p2_rec = parse_record(tokens[i + 3])
+            i += 4
+            rows.append(_row(round_no, pairing, p1_name, w1, p2_name, w2, p1_rec))
+            rows.append(_row(round_no, pairing, p2_name, w2, p1_name, w1, p2_rec))
+        else:
+            # Bye: player 1 only, no opponent.
+            rows.append(_row(round_no, pairing, p1_name, None, None, None, p1_rec))
+    return rows or None
+
+
+def _row(round_no, pairing, name, game_wins, opp_name, opp_wins, record) -> PlayerRound:
+    return PlayerRound(
+        round=round_no,
+        pairing=pairing,
         player_name=name,
         player_key=normalize_name(name),
-        points=int(m.group("points")),
-        wins=int(m.group("w")),
-        draws=int(m.group("d")),
-        losses=int(m.group("l")),
-        deck=deck.strip() if deck else None,
+        game_wins=game_wins,
+        opponent_name=opp_name,
+        opponent_key=normalize_name(opp_name) if opp_name else None,
+        opponent_game_wins=opp_wins,
+        record_wins=record[0],
+        record_draws=record[1],
+        record_losses=record[2],
     )
-
-
-def parse_message(content: str, allowed_names: list[str]) -> ParsedTournament | None:
-    lines = content.splitlines()
-    if not lines:
-        return None
-    header = match_header(lines[0], allowed_names)
-    if header is None:
-        return None
-    name, event_date = header
-    rows = [r for r in (parse_standings_line(l) for l in lines[1:]) if r is not None]
-    if not rows:
-        return None
-    return ParsedTournament(name=name, event_date=event_date, rows=rows)

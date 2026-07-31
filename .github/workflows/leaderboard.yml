@@ -21,5 +21,4 @@ jobs:
           LEADERBOARD_CHANNEL_ID: ${{ secrets.LEADERBOARD_CHANNEL_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          TOURNAMENT_NAMES: ${{ secrets.TOURNAMENT_NAMES }}
           TIMEZONE: ${{ secrets.TIMEZONE }}

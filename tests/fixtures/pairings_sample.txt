@@ -1,0 +1,42 @@
+1
+
+James Doe
+1–0–0
+
+2
+0
+
+Alexey Doe
+0–1–0
+
+2
+
+Raitis Doe
+1–0–0
+
+2
+1
+
+Artur Doe
+0–1–0
+1
+
+Raitis Doe
+2–0–0
+
+2
+1
+
+James Doe
+1–1–0
+
+2
+
+Artur Doe
+1–1–0
+
+2
+1
+
+Alexey Doe
+0–2–0

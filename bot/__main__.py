@@ -30,7 +30,7 @@ def _make_clients(cfg: Config) -> tuple[DiscordClient, Store]:
 
 def _run_ingest(cfg: Config) -> None:
     discord, store = _make_clients(cfg)
-    count = ingest_run(discord, store, cfg.results_channel_id, cfg.tournament_names)
+    count = ingest_run(discord, store, cfg.results_channel_id, cfg.timezone)
     logging.info("Ingest complete: %d new tournament(s)", count)
 
 
