@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MegaGame Latvia — Standard League</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">MegaGame Latvia — Standard League</div>
+      <nav class="tabs">
+        <button id="tab-lb" class="tab" aria-selected="true">Leaderboard</button>
+        <button id="tab-td" class="tab" aria-selected="false">Tournament</button>
+      </nav>
+    </header>
+    <main>
+      <section id="view-lb">
+        <div class="controls">
+          <label for="q-sel">Quarter</label>
+          <select id="q-sel"></select>
+          <span id="q-meta" class="meta"></span>
+        </div>
+        <div id="lb-body"></div>
+      </section>
+      <section id="view-td" hidden>
+        <div class="controls">
+          <label for="t-sel">Tournament</label>
+          <select id="t-sel"></select>
+        </div>
+        <div id="td-body"></div>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

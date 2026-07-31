@@ -1,0 +1,72 @@
+{
+  "tournaments": [
+    {
+      "id": "a",
+      "name": "Standard Showdown",
+      "date": "2026-07-06",
+      "rounds": [
+        {
+          "round": 1,
+          "pairings": [
+            { "pairing": 1, "player1": { "name": "Raitis Ozols", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "Nikita Petrov", "game_wins": 1, "record": { "wins": 0, "draws": 0, "losses": 1 } } },
+            { "pairing": 2, "player1": { "name": "Mārtiņš Kalniņš", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "Artur Sokolov", "game_wins": 0, "record": { "wins": 0, "draws": 0, "losses": 1 } } },
+            { "pairing": 3, "player1": { "name": "James Bond", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "Sergejs Ivanov", "game_wins": 1, "record": { "wins": 0, "draws": 0, "losses": 1 } } }
+          ]
+        },
+        {
+          "round": 2,
+          "pairings": [
+            { "pairing": 1, "player1": { "name": "Raitis Ozols", "game_wins": 2, "record": { "wins": 2, "draws": 0, "losses": 0 } }, "player2": { "name": "Mārtiņš Kalniņš", "game_wins": 1, "record": { "wins": 1, "draws": 0, "losses": 1 } } },
+            { "pairing": 2, "player1": { "name": "James Bond", "game_wins": 2, "record": { "wins": 2, "draws": 0, "losses": 0 } }, "player2": { "name": "Nikita Petrov", "game_wins": 0, "record": { "wins": 0, "draws": 0, "losses": 2 } } },
+            { "pairing": 3, "player1": { "name": "Artur Sokolov", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 1 } }, "player2": { "name": "Sergejs Ivanov", "game_wins": 1, "record": { "wins": 0, "draws": 0, "losses": 2 } } }
+          ]
+        },
+        {
+          "round": 3,
+          "pairings": [
+            { "pairing": 1, "player1": { "name": "Raitis Ozols", "game_wins": 2, "record": { "wins": 3, "draws": 0, "losses": 0 } }, "player2": { "name": "James Bond", "game_wins": 1, "record": { "wins": 2, "draws": 0, "losses": 1 } } },
+            { "pairing": 2, "player1": { "name": "Mārtiņš Kalniņš", "game_wins": 2, "record": { "wins": 2, "draws": 0, "losses": 1 } }, "player2": { "name": "Artur Sokolov", "game_wins": 1, "record": { "wins": 1, "draws": 0, "losses": 2 } } },
+            { "pairing": 3, "player1": { "name": "Nikita Petrov", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 2 } }, "player2": { "name": "Sergejs Ivanov", "game_wins": 0, "record": { "wins": 0, "draws": 0, "losses": 3 } } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b",
+      "name": "Store Championship",
+      "date": "2026-08-17",
+      "rounds": [
+        {
+          "round": 1,
+          "pairings": [
+            { "pairing": 1, "player1": { "name": "Raitis Ozols", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "James Bond", "game_wins": 0, "record": { "wins": 0, "draws": 0, "losses": 1 } } },
+            { "pairing": 2, "player1": { "name": "Nikita Petrov", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "Toms Bērziņš", "game_wins": 1, "record": { "wins": 0, "draws": 0, "losses": 1 } } },
+            { "pairing": 3, "player1": { "name": "Mārtiņš Kalniņš", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": null }
+          ]
+        },
+        {
+          "round": 2,
+          "pairings": [
+            { "pairing": 1, "player1": { "name": "Raitis Ozols", "game_wins": 2, "record": { "wins": 2, "draws": 0, "losses": 0 } }, "player2": { "name": "Nikita Petrov", "game_wins": 1, "record": { "wins": 1, "draws": 0, "losses": 1 } } },
+            { "pairing": 2, "player1": { "name": "James Bond", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 1 } }, "player2": { "name": "Toms Bērziņš", "game_wins": 0, "record": { "wins": 0, "draws": 0, "losses": 2 } } },
+            { "pairing": 3, "player1": { "name": "Mārtiņš Kalniņš", "game_wins": 2, "record": { "wins": 2, "draws": 0, "losses": 0 } }, "player2": null }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "c",
+      "name": "Spring Showdown",
+      "date": "2026-04-12",
+      "rounds": [
+        {
+          "round": 1,
+          "pairings": [
+            { "pairing": 1, "player1": { "name": "Raitis Ozols", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "James Bond", "game_wins": 1, "record": { "wins": 0, "draws": 0, "losses": 1 } } },
+            { "pairing": 2, "player1": { "name": "Artur Sokolov", "game_wins": 2, "record": { "wins": 1, "draws": 0, "losses": 0 } }, "player2": { "name": "Sergejs Ivanov", "game_wins": 0, "record": { "wins": 0, "draws": 0, "losses": 1 } } }
+          ]
+        }
+      ]
+    }
+  ]
+}
