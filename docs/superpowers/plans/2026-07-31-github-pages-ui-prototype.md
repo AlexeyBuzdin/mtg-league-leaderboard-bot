@@ -540,12 +540,12 @@ git commit -m "feat(web): add tournament detail renderer"
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MegaGame Latvia — Standard League</title>
+    <title>MTG Latvia — Standard League</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
-      <div class="brand">MegaGame Latvia — Standard League</div>
+      <div class="brand">MTG Latvia — Standard League</div>
       <nav class="tabs">
         <button id="tab-lb" class="tab" aria-selected="true">Leaderboard</button>
         <button id="tab-td" class="tab" aria-selected="false">Tournament</button>

@@ -5,7 +5,7 @@
 
 ## Summary
 
-A Discord bot for the MegaGame Latvia server that ingests Magic: The Gathering
+A Discord bot for the MTG Latvia server that ingests Magic: The Gathering
 tournament results posted in a Discord channel, stores them in Supabase, and
 posts a monthly leaderboard (sum of points per attendee) on a weekly basis.
 

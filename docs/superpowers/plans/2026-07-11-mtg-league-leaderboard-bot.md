@@ -1474,7 +1474,7 @@ TIMEZONE=Europe/Riga
 ````markdown
 # mtg-league-leaderboard-bot
 
-Discord bot for MegaGame Latvia that ingests MTG tournament results and posts a
+Discord bot for MTG Latvia that ingests MTG tournament results and posts a
 monthly leaderboard. Runs as two GitHub Actions cron jobs.
 
 ## How it works
