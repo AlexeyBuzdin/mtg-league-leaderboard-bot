@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from bot.parser import ParsedTournament
+from bot.parser import PlayerRound
 
 
 class Store:
@@ -20,14 +20,21 @@ class Store:
         )
         return {row["discord_message_id"] for row in resp.data}
 
-    def insert_tournament(self, message_id: str, channel_id: str, t: ParsedTournament) -> None:
+    def insert_tournament(
+        self,
+        message_id: str,
+        channel_id: str,
+        name: str,
+        event_date: date,
+        rounds: list[PlayerRound],
+    ) -> None:
         resp = (
             self._db.table("tournaments")
             .insert(
                 {
                     "discord_message_id": message_id,
-                    "name": t.name,
-                    "event_date": t.event_date.isoformat(),
+                    "name": name,
+                    "event_date": event_date.isoformat(),
                     "channel_id": channel_id,
                 }
             )
@@ -37,27 +44,46 @@ class Store:
         rows = [
             {
                 "tournament_id": tournament_id,
-                "standing": r.standing,
+                "round": r.round,
+                "pairing": r.pairing,
                 "player_name": r.player_name,
                 "player_key": r.player_key,
-                "points": r.points,
-                "wins": r.wins,
-                "draws": r.draws,
-                "losses": r.losses,
-                "deck": r.deck,
+                "opponent_name": r.opponent_name,
+                "opponent_key": r.opponent_key,
+                "game_wins": r.game_wins,
+                "opponent_game_wins": r.opponent_game_wins,
+                "record_wins": r.record_wins,
+                "record_draws": r.record_draws,
+                "record_losses": r.record_losses,
             }
-            for r in t.rows
+            for r in rounds
         ]
-        self._db.table("results").insert(rows).execute()
+        self._db.table("round_results").insert(rows).execute()
 
     def fetch_results_in_window(self, start: date, end: date) -> list[dict]:
         resp = (
-            self._db.table("results")
-            .select("points, player_key, player_name, tournaments!inner(event_date)")
+            self._db.table("round_results")
+            .select(
+                "tournament_id, round, player_key, player_name, "
+                "record_wins, record_draws, tournaments!inner(event_date)"
+            )
             .gte("tournaments.event_date", start.isoformat())
             .lte("tournaments.event_date", end.isoformat())
-            # Oldest-first so aggregate_totals' overwrite yields the latest name spelling.
             .order("event_date", desc=False, foreign_table="tournaments")
             .execute()
         )
-        return resp.data
+        # Reduce to each player's final-round record per tournament, then points = 3W + D.
+        finals: dict[tuple, dict] = {}
+        for row in resp.data:
+            key = (row["tournament_id"], row["player_key"])
+            current = finals.get(key)
+            if current is None or row["round"] > current["round"]:
+                finals[key] = row
+        return [
+            {
+                "player_key": row["player_key"],
+                "player_name": row["player_name"],
+                "points": 3 * row["record_wins"] + row["record_draws"],
+            }
+            for row in finals.values()
+        ]
