@@ -7,7 +7,7 @@ import sys
 from collections import defaultdict
 
 
-def _player_obj(row: dict) -> dict:
+def _player_obj(row: dict, league_keys) -> dict:
     return {
         "name": row["player_name"],
         "game_wins": row["game_wins"],
@@ -16,10 +16,11 @@ def _player_obj(row: dict) -> dict:
             "draws": row["record_draws"],
             "losses": row["record_losses"],
         },
+        "is_league": True if league_keys is None else row["player_key"] in league_keys,
     }
 
 
-def build_site_data(tournaments: list[dict], results: list[dict]) -> dict:
+def build_site_data(tournaments: list[dict], results: list[dict], league_keys=None) -> dict:
     grouped: dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     for row in results:
         grouped[row["tournament_id"]][row["round"]][row["pairing"]].append(row)
@@ -38,8 +39,8 @@ def build_site_data(tournaments: list[dict], results: list[dict]) -> dict:
                 pairings_out.append(
                     {
                         "pairing": pairing_no,
-                        "player1": _player_obj(rows[0]),
-                        "player2": _player_obj(rows[1]) if len(rows) > 1 else None,
+                        "player1": _player_obj(rows[0], league_keys),
+                        "player2": _player_obj(rows[1], league_keys) if len(rows) > 1 else None,
                     }
                 )
             rounds_out.append({"round": round_no, "pairings": pairings_out})
@@ -59,6 +60,7 @@ _RESULT_COLS = (
     "tournament_id, round, pairing, player_name, player_key, "
     "game_wins, record_wins, record_draws, record_losses"
 )
+_PLAYER_COLS = "player_key, is_league"
 
 
 _PAGE_SIZE = 1000
@@ -85,10 +87,12 @@ def _fetch_all(client, table: str, cols: str) -> list[dict]:
     return rows
 
 
-def _fetch(client) -> tuple[list[dict], list[dict]]:
+def _fetch(client) -> tuple[list[dict], list[dict], set[str]]:
     tournaments = _fetch_all(client, "tournaments", _TOURNAMENT_COLS)
     results = _fetch_all(client, "round_results", _RESULT_COLS)
-    return tournaments, results
+    players = _fetch_all(client, "players", _PLAYER_COLS)
+    league_keys = {p["player_key"] for p in players if p["is_league"]}
+    return tournaments, results, league_keys
 
 
 def _normalize_url(url: str) -> str:
@@ -97,8 +101,8 @@ def _normalize_url(url: str) -> str:
 
 
 def export_to_file(client, out_path: str) -> int:
-    tournaments, results = _fetch(client)
-    data = build_site_data(tournaments, results)
+    tournaments, results, league_keys = _fetch(client)
+    data = build_site_data(tournaments, results, league_keys)
     with open(out_path, "w", encoding="utf-8") as handle:
         json.dump(data, handle, ensure_ascii=False, indent=2)
     return len(data["tournaments"])
