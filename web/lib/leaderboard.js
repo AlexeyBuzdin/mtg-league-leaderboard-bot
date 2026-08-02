@@ -1,4 +1,4 @@
-import { quarterKey } from './quarter.js';
+import { seasonKey } from './season.js';
 
 export function finalRecords(tournament) {
   const last = {};
@@ -17,10 +17,10 @@ export function points(record) {
   return record.wins * 3 + record.draws;
 }
 
-export function quarterLeaderboard(tournaments, key) {
+export function seasonLeaderboard(tournaments, key) {
   const agg = {};
   for (const tournament of tournaments) {
-    if (quarterKey(tournament.date) !== key) continue;
+    if (seasonKey(tournament.date) !== key) continue;
     const finals = finalRecords(tournament);
     for (const [name, record] of Object.entries(finals)) {
       if (!agg[name]) agg[name] = { name, points: 0, events: 0 };

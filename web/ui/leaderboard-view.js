@@ -9,7 +9,7 @@ function initials(name) {
 
 export function renderLeaderboard(rows) {
   if (rows.length === 0) {
-    return '<div class="empty">No results for this quarter.</div>';
+    return '<div class="empty">No results for this season.</div>';
   }
   const medal = ['#BA7517', '#888780', '#993C1D'];
   const head =
