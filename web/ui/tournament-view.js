@@ -27,7 +27,41 @@ function pairingRow(pairing) {
   );
 }
 
+function isStandingsEvent(tournament) {
+  const pairings = tournament.rounds.flatMap(round => round.pairings);
+  return pairings.length > 0 && pairings.every(pairing => pairing.player2 === null);
+}
+
+function renderStandings(tournament) {
+  const players = tournament.rounds
+    .flatMap(round => round.pairings)
+    .map(pairing => ({ rank: pairing.pairing, player: pairing.player1 }))
+    .sort((a, b) => a.rank - b.rank);
+  const header =
+    `<div class="t-header"><div class="t-name">${tournament.name}</div>` +
+    `<div class="t-meta">${tournament.date} · ${players.length} players</div></div>`;
+  const head =
+    '<div class="row head"><div>#</div><div>Player</div>' +
+    '<div class="num">Record</div><div class="num">Points</div></div>';
+  const body = players
+    .map(({ rank, player }) => {
+      const r = player.record;
+      const points = r.wins * 3 + r.draws;
+      return (
+        `<div class="row">` +
+        `<div class="rank">${rank}</div>` +
+        `<div class="player">${player.name}</div>` +
+        `<div class="num">${r.wins}-${r.draws}-${r.losses}</div>` +
+        `<div class="num strong">${points}</div>` +
+        `</div>`
+      );
+    })
+    .join('');
+  return header + head + body;
+}
+
 export function renderTournament(tournament) {
+  if (isStandingsEvent(tournament)) return renderStandings(tournament);
   const header =
     `<div class="t-header"><div class="t-name">${tournament.name}</div>` +
     `<div class="t-meta">${tournament.date} · ${tournament.rounds.length} rounds</div></div>`;
