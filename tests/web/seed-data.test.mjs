@@ -33,3 +33,17 @@ test('seed players carry an is_league flag and include a non-league example', ()
   assert.ok(flags.includes(true));
   assert.ok(flags.includes(false));
 });
+
+test('seed data includes at least one player with deck colours', () => {
+  let found = false;
+  for (const t of data.tournaments) {
+    for (const r of t.rounds) {
+      for (const p of r.pairings) {
+        for (const player of [p.player1, p.player2]) {
+          if (player && player.deck_colours) found = true;
+        }
+      }
+    }
+  }
+  assert.ok(found);
+});
