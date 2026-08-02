@@ -60,3 +60,53 @@ def test_null_name_fallback():
     results = [res(1, 1, 1, "Ann", "ann", 2, 1, 0, 0)]
     data = build_site_data(tournaments, results)
     assert data["tournaments"][0]["name"] == "Tournament"
+
+
+import json
+import pytest
+from bot.export import export_to_file, main
+
+
+class _FakeQuery:
+    def __init__(self, data):
+        self._data = data
+
+    def select(self, *_cols):
+        return self
+
+    def execute(self):
+        return type("R", (), {"data": self._data})
+
+
+class _FakeClient:
+    def __init__(self, tournaments, results):
+        self._tables = {"tournaments": tournaments, "round_results": results}
+
+    def table(self, name):
+        return _FakeQuery(self._tables[name])
+
+
+def test_export_to_file_writes_expected_json(tmp_path):
+    tournaments = [{"id": 1, "name": "A", "event_date": "2026-07-06"}]
+    results = [res(1, 1, 1, "Ann", "ann", 2, 1, 0, 0),
+               res(1, 1, 1, "Bob", "bob", 1, 0, 0, 1)]
+    out = tmp_path / "tournaments.json"
+    count = export_to_file(_FakeClient(tournaments, results), str(out))
+    assert count == 1
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["tournaments"][0]["rounds"][0]["pairings"][0]["player1"]["name"] == "Ann"
+
+
+def test_export_to_file_preserves_unicode(tmp_path):
+    tournaments = [{"id": 1, "name": None, "event_date": "2026-07-06"}]
+    results = [res(1, 1, 1, "Mārtiņš", "mārtiņš", 2, 1, 0, 0)]
+    out = tmp_path / "t.json"
+    export_to_file(_FakeClient(tournaments, results), str(out))
+    assert "Mārtiņš" in out.read_text(encoding="utf-8")
+
+
+def test_main_requires_env(monkeypatch, tmp_path):
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    with pytest.raises(SystemExit):
+        main(["--out", str(tmp_path / "x.json")])

@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import argparse
+import json
+import os
+import sys
 from collections import defaultdict
 
 
@@ -48,3 +52,45 @@ def build_site_data(tournaments: list[dict], results: list[dict]) -> dict:
             }
         )
     return {"tournaments": out_tournaments}
+
+
+_TOURNAMENT_COLS = "id, name, event_date"
+_RESULT_COLS = (
+    "tournament_id, round, pairing, player_name, player_key, "
+    "game_wins, record_wins, record_draws, record_losses"
+)
+
+
+def _fetch(client) -> tuple[list[dict], list[dict]]:
+    tournaments = client.table("tournaments").select(_TOURNAMENT_COLS).execute().data
+    results = client.table("round_results").select(_RESULT_COLS).execute().data
+    return tournaments, results
+
+
+def export_to_file(client, out_path: str) -> int:
+    tournaments, results = _fetch(client)
+    data = build_site_data(tournaments, results)
+    with open(out_path, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, ensure_ascii=False, indent=2)
+    return len(data["tournaments"])
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(prog="bot.export")
+    parser.add_argument("--out", default="web/data/tournaments.json")
+    args = parser.parse_args(argv)
+
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    if not url or not key:
+        print("SUPABASE_URL and SUPABASE_KEY must be set", file=sys.stderr)
+        raise SystemExit(1)
+
+    from supabase import create_client
+
+    count = export_to_file(create_client(url, key), args.out)
+    print(f"Wrote {count} tournaments to {args.out}")
+
+
+if __name__ == "__main__":
+    main()
