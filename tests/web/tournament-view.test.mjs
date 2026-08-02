@@ -88,3 +88,50 @@ test('a normal pairing event still renders pairings (regression)', () => {
   assert.match(html, /2-1/);
   assert.match(html, /class="pairing/);
 });
+
+test('shows one "Not from League" pill for a non-league player in pairings', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), is_league: true },
+        player2: { name: 'Guest', game_wins: 1, record: rec(0, 0, 1), is_league: false } },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  assert.match(html, /Not from League/);
+  assert.equal((html.match(/Not from League/g) || []).length, 1);
+});
+
+test('no pill for league players or a missing is_league flag', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), is_league: true },
+        player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  assert.ok(!renderTournament(t).includes('Not from League'));
+});
+
+test('shows the pill on the bye player when non-league', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), is_league: true }, player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1), is_league: true } },
+      { pairing: 2, player1: { name: 'Guest', game_wins: 2, record: rec(1, 0, 0), is_league: false }, player2: null },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  assert.equal((html.match(/Not from League/g) || []).length, 1);
+});
+
+test('shows the pill in the standings-table view too', () => {
+  const legacy = { name: 'Legacy', date: '2026-07-20', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Elliot N', game_wins: null, record: rec(3, 0, 0), is_league: true }, player2: null },
+      { pairing: 2, player1: { name: 'Guest', game_wins: null, record: rec(2, 0, 1), is_league: false }, player2: null },
+    ] },
+  ] };
+  const html = renderTournament(legacy);
+  assert.match(html, /Not from League/);
+  assert.equal((html.match(/Not from League/g) || []).length, 1);
+});
