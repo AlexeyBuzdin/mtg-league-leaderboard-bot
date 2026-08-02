@@ -64,7 +64,7 @@ future work.
 
 ## The one-off load
 
-1. **Parse** the 11 events with old-standings-format logic: header →
+1. **Parse** the 8 events with old-standings-format logic: header →
    `(name, date)`; each row → `standing, name, points, W/L/D` (deck ignored).
    Non-matching lines are skipped and reported (nothing silently dropped).
 2. **Generate SQL**: per event, a CTE that inserts the `tournaments` row
@@ -76,7 +76,7 @@ future work.
 4. **Approval gate**: show the parsed summary (event count, per-event player
    counts, a couple of computed-points spot-checks) and the exact SQL; run
    against the live `league-binder` DB only on an explicit go.
-5. **Verify**: re-query row counts (11 tournaments, total players) and one
+5. **Verify**: re-query row counts (8 tournaments, total players) and one
    event's standings after the load.
 
 ## Front-end standings rendering
