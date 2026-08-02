@@ -1,11 +1,15 @@
 name: pages
 on:
+  workflow_run:
+    workflows: ["ingest"]
+    types: [completed]
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "web/**"
+      - "bot/export.py"
       - ".github/workflows/pages.yml"
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,12 +22,21 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - run: python -m bot.export --out web/data/tournaments.json
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
