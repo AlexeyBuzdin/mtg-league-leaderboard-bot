@@ -29,3 +29,11 @@ create table if not exists round_results (
 create index if not exists round_results_player_key_idx on round_results (player_key);
 create index if not exists round_results_tournament_idx on round_results (tournament_id, player_key);
 create index if not exists tournaments_event_date_idx on tournaments (event_date);
+
+-- League roster: which players appear on the leaderboards.
+create table if not exists players (
+  player_key   text primary key,
+  display_name text,
+  is_league    boolean not null default false,
+  created_at   timestamptz not null default now()
+);
