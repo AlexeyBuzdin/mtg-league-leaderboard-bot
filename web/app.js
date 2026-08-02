@@ -7,7 +7,7 @@ const state = { tournaments: [] };
 
 async function boot() {
   try {
-    const response = await fetch('data/mock-tournaments.json');
+    const response = await fetch('data/tournaments.json');
     if (!response.ok) throw new Error('bad status');
     state.tournaments = (await response.json()).tournaments;
   } catch {
