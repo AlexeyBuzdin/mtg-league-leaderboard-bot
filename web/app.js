@@ -1,5 +1,5 @@
-import { quarterKey } from './lib/quarter.js';
-import { quarterLeaderboard } from './lib/leaderboard.js';
+import { seasonKey, seasonLabel } from './lib/season.js';
+import { seasonLeaderboard } from './lib/leaderboard.js';
 import { renderLeaderboard } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
 
@@ -39,16 +39,16 @@ function setupTabs() {
 
 function setupLeaderboard() {
   const select = document.getElementById('q-sel');
-  const quarters = [...new Set(state.tournaments.map(t => quarterKey(t.date)))]
-    .sort()
-    .reverse();
-  select.innerHTML = quarters
-    .map(q => `<option value="${q}">${q.replace('-', ' · ')}</option>`)
+  const byKey = new Map();
+  for (const t of state.tournaments) byKey.set(seasonKey(t.date), seasonLabel(t.date));
+  const keys = [...byKey.keys()].sort().reverse();
+  select.innerHTML = keys
+    .map(k => `<option value="${k}">${byKey.get(k)}</option>`)
     .join('');
   function render() {
     const key = select.value;
-    const rows = quarterLeaderboard(state.tournaments, key);
-    const count = state.tournaments.filter(t => quarterKey(t.date) === key).length;
+    const rows = seasonLeaderboard(state.tournaments, key);
+    const count = state.tournaments.filter(t => seasonKey(t.date) === key).length;
     document.getElementById('q-meta').textContent =
       `${count} tournaments · ${rows.length} players`;
     document.getElementById('lb-body').innerHTML = renderLeaderboard(rows);
