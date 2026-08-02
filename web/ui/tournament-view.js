@@ -4,12 +4,28 @@ function recordChip(record) {
 
 const MARK = '<span class="mark">✓</span>';
 
+const MANA = new Set(['W', 'U', 'B', 'R', 'G']);
+
+function manaIcons(colours) {
+  if (!colours) return '';
+  return [...colours.toUpperCase()]
+    .filter(c => MANA.has(c))
+    .map(c => `<img class="mana" src="icons/mana/${c}.svg" alt="${c}" />`)
+    .join('');
+}
+
+function deckInfo(player) {
+  const icons = manaIcons(player.deck_colours);
+  const name = player.deck ? `<span class="deck-name">${player.deck}</span>` : '';
+  return icons + name;
+}
+
 function pairingRow(pairing) {
   const p1 = pairing.player1;
   if (!pairing.player2) {
     return (
       `<div class="pairing bye">` +
-      `<div class="side win">${MARK}<span class="name">${p1.name}</span>${recordChip(p1.record)}</div>` +
+      `<div class="side win">${MARK}<span class="name">${p1.name}</span>${deckInfo(p1)}${recordChip(p1.record)}</div>` +
       `<div class="score">Bye</div>` +
       `<div class="side right"></div>` +
       `</div>`
@@ -20,9 +36,9 @@ function pairingRow(pairing) {
   const p2Won = p2.game_wins > p1.game_wins;
   return (
     `<div class="pairing">` +
-    `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}<span class="name">${p1.name}</span>${recordChip(p1.record)}</div>` +
+    `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}<span class="name">${p1.name}</span>${deckInfo(p1)}${recordChip(p1.record)}</div>` +
     `<div class="score">${p1.game_wins}-${p2.game_wins}</div>` +
-    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${p2Won ? MARK : ''}</div>` +
+    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${deckInfo(p2)}${p2Won ? MARK : ''}</div>` +
     `</div>`
   );
 }
@@ -50,7 +66,7 @@ function renderStandings(tournament) {
       return (
         `<div class="row">` +
         `<div class="rank">${rank}</div>` +
-        `<div class="player">${player.name}</div>` +
+        `<div class="player">${player.name}${deckInfo(player)}</div>` +
         `<div class="num">${r.wins}-${r.draws}-${r.losses}</div>` +
         `<div class="num strong">${points}</div>` +
         `</div>`
