@@ -67,15 +67,29 @@ import pytest
 from bot.export import export_to_file, main
 
 
+_POSTGREST_CAP = 1000
+
+
 class _FakeQuery:
     def __init__(self, data):
         self._data = data
+        self._range = None
 
     def select(self, *_cols):
         return self
 
+    def range(self, start, end):
+        self._range = (start, end)
+        return self
+
     def execute(self):
-        return type("R", (), {"data": self._data})
+        if self._range is None:
+            # Mimic PostgREST: an un-ranged read is capped server-side.
+            data = self._data[:_POSTGREST_CAP]
+        else:
+            start, end = self._range
+            data = self._data[start : end + 1]
+        return type("R", (), {"data": data})
 
 
 class _FakeClient:
@@ -110,3 +124,19 @@ def test_main_requires_env(monkeypatch, tmp_path):
     monkeypatch.delenv("SUPABASE_KEY", raising=False)
     with pytest.raises(SystemExit):
         main(["--out", str(tmp_path / "x.json")])
+
+
+def test_export_fetches_all_rows_beyond_page_cap(tmp_path):
+    # 1500 pairings -> 3000 round_results rows, past the 1000-row cap.
+    # An un-paginated fetch would truncate and render dropped rows as false byes.
+    tournaments = [{"id": 1, "name": "Big", "event_date": "2026-07-06"}]
+    results = []
+    for i in range(1500):
+        results.append(res(1, 1, i + 1, f"A{i}", f"a{i:05d}", 2, 1, 0, 0))
+        results.append(res(1, 1, i + 1, f"B{i}", f"b{i:05d}", 1, 0, 0, 1))
+    out = tmp_path / "t.json"
+    export_to_file(_FakeClient(tournaments, results), str(out))
+    data = json.loads(out.read_text(encoding="utf-8"))
+    pairings = data["tournaments"][0]["rounds"][0]["pairings"]
+    assert len(pairings) == 1500
+    assert all(p["player2"] is not None for p in pairings)

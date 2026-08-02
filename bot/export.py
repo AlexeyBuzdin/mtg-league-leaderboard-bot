@@ -61,9 +61,33 @@ _RESULT_COLS = (
 )
 
 
+_PAGE_SIZE = 1000
+
+
+def _fetch_all(client, table: str, cols: str) -> list[dict]:
+    # PostgREST caps a single response (default ~1000 rows), so page explicitly
+    # rather than silently truncating — a dropped round_results row would render
+    # as a false bye.
+    rows: list[dict] = []
+    start = 0
+    while True:
+        page = (
+            client.table(table)
+            .select(cols)
+            .range(start, start + _PAGE_SIZE - 1)
+            .execute()
+            .data
+        )
+        rows.extend(page)
+        if len(page) < _PAGE_SIZE:
+            break
+        start += _PAGE_SIZE
+    return rows
+
+
 def _fetch(client) -> tuple[list[dict], list[dict]]:
-    tournaments = client.table("tournaments").select(_TOURNAMENT_COLS).execute().data
-    results = client.table("round_results").select(_RESULT_COLS).execute().data
+    tournaments = _fetch_all(client, "tournaments", _TOURNAMENT_COLS)
+    results = _fetch_all(client, "round_results", _RESULT_COLS)
     return tournaments, results
 
 
