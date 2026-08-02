@@ -18,7 +18,9 @@
                   "draws": 0,
                   "losses": 0
                 },
-                "is_league": true
+                "is_league": true,
+                "deck": "Izzet Prowess",
+                "deck_colours": "UR"
               },
               "player2": {
                 "name": "Nikita Petrov",
@@ -41,7 +43,8 @@
                   "draws": 0,
                   "losses": 0
                 },
-                "is_league": true
+                "is_league": true,
+                "deck_colours": "WUB"
               },
               "player2": {
                 "name": "Artur Sokolov",

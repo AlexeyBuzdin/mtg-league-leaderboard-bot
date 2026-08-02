@@ -37,3 +37,9 @@ create table if not exists players (
   is_league    boolean not null default false,
   created_at   timestamptz not null default now()
 );
+
+-- Optional per-player deck info (filled manually in Supabase).
+alter table round_results add column if not exists player_deck            text;
+alter table round_results add column if not exists opponent_deck          text;
+alter table round_results add column if not exists player_deck_colours     text;
+alter table round_results add column if not exists opponent_deck_colours   text;

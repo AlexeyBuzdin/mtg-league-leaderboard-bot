@@ -89,6 +89,55 @@ test('a normal pairing event still renders pairings (regression)', () => {
   assert.match(html, /class="pairing/);
 });
 
+test('renders mana icons for deck colours in order, then the deck name', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), deck_colours: 'WUR', deck: 'Jeskai Control' },
+        player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  assert.ok(html.indexOf('icons/mana/W.svg') < html.indexOf('icons/mana/U.svg'));
+  assert.ok(html.indexOf('icons/mana/U.svg') < html.indexOf('icons/mana/R.svg'));
+  assert.equal((html.match(/class="mana"/g) || []).length, 3);
+  assert.match(html, /Jeskai Control/);
+  assert.ok(html.indexOf('icons/mana/R.svg') < html.indexOf('Jeskai Control'));
+});
+
+test('shows no deck info when deck and colours are empty', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) }, player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  assert.ok(!html.includes('class="mana"'));
+  assert.ok(!html.includes('deck-name'));
+});
+
+test('skips invalid colour characters (case-insensitive)', () => {
+  const t = { name: 'A', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), deck_colours: 'WxG' }, player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const html = renderTournament(t);
+  assert.equal((html.match(/class="mana"/g) || []).length, 2);
+  assert.match(html, /icons\/mana\/W\.svg/);
+  assert.match(html, /icons\/mana\/G\.svg/);
+});
+
+test('shows deck info in the standings-table view too', () => {
+  const legacy = { name: 'Legacy', date: '2026-07-20', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Elliot N', game_wins: null, record: rec(3, 0, 0), deck_colours: 'B', deck: 'Mono Black' }, player2: null },
+    ] },
+  ] };
+  const html = renderTournament(legacy);
+  assert.match(html, /icons\/mana\/B\.svg/);
+  assert.match(html, /Mono Black/);
+});
 test('shows one "Not from League" pill for a non-league player in pairings', () => {
   const t = { name: 'A', date: '2026-07-06', rounds: [
     { round: 1, pairings: [
