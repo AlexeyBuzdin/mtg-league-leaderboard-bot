@@ -91,6 +91,11 @@ def _fetch(client) -> tuple[list[dict], list[dict]]:
     return tournaments, results
 
 
+def _normalize_url(url: str) -> str:
+    # A trailing slash makes supabase-py build "…//rest/v1/…" → PostgREST PGRST125.
+    return url.rstrip("/")
+
+
 def export_to_file(client, out_path: str) -> int:
     tournaments, results = _fetch(client)
     data = build_site_data(tournaments, results)
@@ -112,7 +117,7 @@ def main(argv: list[str] | None = None) -> None:
 
     from supabase import create_client
 
-    count = export_to_file(create_client(url, key), args.out)
+    count = export_to_file(create_client(_normalize_url(url), key), args.out)
     print(f"Wrote {count} tournaments to {args.out}")
 
 
