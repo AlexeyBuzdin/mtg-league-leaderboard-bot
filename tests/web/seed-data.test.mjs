@@ -17,3 +17,19 @@ test('committed seed data matches the front-end shape', () => {
   const p1 = pairing.player1;
   assert.ok('name' in p1 && 'game_wins' in p1 && 'record' in p1);
 });
+
+test('seed players carry an is_league flag and include a non-league example', () => {
+  const flags = [];
+  for (const t of data.tournaments) {
+    for (const r of t.rounds) {
+      for (const p of r.pairings) {
+        for (const player of [p.player1, p.player2]) {
+          if (player) flags.push(player.is_league);
+        }
+      }
+    }
+  }
+  assert.ok(flags.every(f => typeof f === 'boolean'));
+  assert.ok(flags.includes(true));
+  assert.ok(flags.includes(false));
+});
