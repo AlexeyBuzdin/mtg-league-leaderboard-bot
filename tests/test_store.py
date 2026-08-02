@@ -13,6 +13,7 @@ class FakeQuery:
         self.table = table
         self._filter = None
         self._is_insert = False
+        self._is_upsert = False
 
     def select(self, *_cols):
         return self
@@ -38,7 +39,18 @@ class FakeQuery:
         self.table.inserted.append(payload)
         return self
 
+    def upsert(self, payload, *, on_conflict=None, ignore_duplicates=False):
+        self._is_upsert = True
+        self.table.upserted.append(payload)
+        return self
+
+    def eq(self, col, value):
+        self._filter = (col, {value})
+        return self
+
     def execute(self):
+        if self._is_upsert:
+            return Result([])
         if self._is_insert:
             return Result(self.table.insert_returns)
         if self._filter:
@@ -51,6 +63,7 @@ class FakeTable:
     def __init__(self, rows=None, insert_returns=None):
         self.rows = rows or []
         self.inserted = []
+        self.upserted = []
         self.calls = []
         self.insert_returns = insert_returns or []
 
@@ -136,3 +149,27 @@ def test_fetch_results_separates_same_player_across_tournaments():
     james_rows = [r for r in out if r["player_key"] == "james doe"]
     assert len(james_rows) == 2
     assert sorted(r["points"] for r in james_rows) == [3, 9]
+
+
+def test_upsert_players_records_rows():
+    players = FakeTable()
+    store = Store(FakeSupabase({"players": players}))
+    store.upsert_players([{"player_key": "ann", "display_name": "Ann"}])
+    assert players.upserted[0][0]["player_key"] == "ann"
+    assert players.upserted[0][0]["display_name"] == "Ann"
+
+
+def test_upsert_players_empty_is_noop():
+    players = FakeTable()
+    store = Store(FakeSupabase({"players": players}))
+    store.upsert_players([])
+    assert players.upserted == []
+
+
+def test_fetch_league_keys_returns_only_league():
+    players = FakeTable(rows=[
+        {"player_key": "ann", "is_league": True},
+        {"player_key": "guest", "is_league": False},
+    ])
+    store = Store(FakeSupabase({"players": players}))
+    assert store.fetch_league_keys() == {"ann"}

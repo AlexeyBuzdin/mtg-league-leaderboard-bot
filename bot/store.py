@@ -20,6 +20,19 @@ class Store:
         )
         return {row["discord_message_id"] for row in resp.data}
 
+    def upsert_players(self, players: list[dict]) -> None:
+        if not players:
+            return
+        self._db.table("players").upsert(
+            players, on_conflict="player_key", ignore_duplicates=True
+        ).execute()
+
+    def fetch_league_keys(self) -> set[str]:
+        resp = (
+            self._db.table("players").select("player_key").eq("is_league", True).execute()
+        )
+        return {row["player_key"] for row in resp.data}
+
     def insert_tournament(
         self,
         message_id: str,
