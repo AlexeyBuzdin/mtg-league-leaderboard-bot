@@ -19,9 +19,10 @@ const t1 = {
 
 test('finalRecords keeps the last record per player and includes byes', () => {
   const f = finalRecords(t1);
-  assert.deepEqual(f['Ann'], rec(2, 0, 0));
-  assert.deepEqual(f['Bob'], rec(0, 0, 2));
-  assert.deepEqual(f['Cara'], rec(1, 0, 0));
+  assert.deepEqual(f['Ann'].record, rec(2, 0, 0));
+  assert.deepEqual(f['Bob'].record, rec(0, 0, 2));
+  assert.deepEqual(f['Cara'].record, rec(1, 0, 0));
+  assert.equal(f['Ann'].isLeague, true);
 });
 
 test('points = 3*wins + draws', () => {
@@ -46,4 +47,28 @@ test('quarterLeaderboard sums points, counts events, filters by quarter, sorts',
   assert.equal(board[2].name, 'Cara');
   assert.equal(board[2].events, 1);
   assert.ok(!board.find(r => r.name === 'Zed'));
+});
+
+test('quarterLeaderboard excludes non-league players', () => {
+  const t = { id: 'x', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0), is_league: true },
+        player2: { name: 'Guest', game_wins: 1, record: rec(0, 0, 1), is_league: false } },
+    ] },
+  ] };
+  const board = quarterLeaderboard([t], '2026-Q3');
+  assert.deepEqual(board.map(r => r.name), ['Ann']);
+});
+
+test('quarterLeaderboard treats a missing is_league as league', () => {
+  const t = { id: 'x', date: '2026-07-06', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1,
+        player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) },
+        player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const board = quarterLeaderboard([t], '2026-Q3');
+  assert.deepEqual(board.map(r => r.name).sort(), ['Ann', 'Bob']);
 });
