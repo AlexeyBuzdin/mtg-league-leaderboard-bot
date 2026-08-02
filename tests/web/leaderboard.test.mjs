@@ -49,7 +49,7 @@ test('seasonLeaderboard sums points, counts events, filters by season, sorts', (
   assert.ok(!board.find(r => r.name === 'Zed'));
 });
 
-test('quarterLeaderboard excludes non-league players', () => {
+test('seasonLeaderboard excludes non-league players', () => {
   const t = { id: 'x', date: '2026-07-06', rounds: [
     { round: 1, pairings: [
       { pairing: 1,
@@ -57,11 +57,11 @@ test('quarterLeaderboard excludes non-league players', () => {
         player2: { name: 'Guest', game_wins: 1, record: rec(0, 0, 1), is_league: false } },
     ] },
   ] };
-  const board = quarterLeaderboard([t], '2026-Q3');
+  const board = seasonLeaderboard([t], '2026-2');
   assert.deepEqual(board.map(r => r.name), ['Ann']);
 });
 
-test('quarterLeaderboard treats a missing is_league as league', () => {
+test('seasonLeaderboard treats a missing is_league as league', () => {
   const t = { id: 'x', date: '2026-07-06', rounds: [
     { round: 1, pairings: [
       { pairing: 1,
@@ -69,6 +69,6 @@ test('quarterLeaderboard treats a missing is_league as league', () => {
         player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
     ] },
   ] };
-  const board = quarterLeaderboard([t], '2026-Q3');
+  const board = seasonLeaderboard([t], '2026-2');
   assert.deepEqual(board.map(r => r.name).sort(), ['Ann', 'Bob']);
 });
