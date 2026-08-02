@@ -1,4 +1,4 @@
-import { quarterKey } from './quarter.js';
+import { seasonKey } from './season.js';
 
 function playerEntry(player) {
   return { record: player.record, isLeague: player.is_league !== false };
@@ -21,10 +21,10 @@ export function points(record) {
   return record.wins * 3 + record.draws;
 }
 
-export function quarterLeaderboard(tournaments, key) {
+export function seasonLeaderboard(tournaments, key) {
   const agg = {};
   for (const tournament of tournaments) {
-    if (quarterKey(tournament.date) !== key) continue;
+    if (seasonKey(tournament.date) !== key) continue;
     const finals = finalRecords(tournament);
     for (const [name, entry] of Object.entries(finals)) {
       if (!entry.isLeague) continue;

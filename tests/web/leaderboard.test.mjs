@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { finalRecords, points, quarterLeaderboard } from '../../web/lib/leaderboard.js';
+import { finalRecords, points, seasonLeaderboard } from '../../web/lib/leaderboard.js';
 
 const rec = (w, d, l) => ({ wins: w, draws: d, losses: l });
 
@@ -30,14 +30,14 @@ test('points = 3*wins + draws', () => {
   assert.equal(points(rec(0, 0, 3)), 0);
 });
 
-test('quarterLeaderboard sums points, counts events, filters by quarter, sorts', () => {
+test('seasonLeaderboard sums points, counts events, filters by season, sorts', () => {
   const t2 = { id: 'b', name: 'B', date: '2026-08-01', rounds: [
     { round: 1, pairings: [ { pairing: 1, player1: { name: 'Bob', game_wins: 2, record: rec(1, 0, 0) }, player2: { name: 'Ann', game_wins: 0, record: rec(0, 0, 1) } } ] },
   ] };
   const q2Tournament = { id: 'c', name: 'C', date: '2026-04-01', rounds: [
     { round: 1, pairings: [ { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(1, 0, 0) }, player2: { name: 'Zed', game_wins: 0, record: rec(0, 0, 1) } } ] },
   ] };
-  const board = quarterLeaderboard([t1, t2, q2Tournament], '2026-Q3');
+  const board = seasonLeaderboard([t1, t2, q2Tournament], '2026-2');
   assert.deepEqual(board.map(r => r.name), ['Ann', 'Bob', 'Cara']);
   assert.equal(board[0].points, 6);
   assert.equal(board[0].events, 2);
