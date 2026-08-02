@@ -19,8 +19,8 @@ def test_full_pairing_two_rows():
     assert t["date"] == "2026-07-06"
     p = t["rounds"][0]["pairings"][0]
     assert p["pairing"] == 1
-    assert p["player1"] == {"name": "Ann", "game_wins": 2, "record": {"wins": 1, "draws": 0, "losses": 0}, "is_league": True}
-    assert p["player2"] == {"name": "Bob", "game_wins": 1, "record": {"wins": 0, "draws": 0, "losses": 1}, "is_league": True}
+    assert p["player1"] == {"name": "Ann", "game_wins": 2, "record": {"wins": 1, "draws": 0, "losses": 0}, "is_league": True, "deck": None, "deck_colours": None}
+    assert p["player2"] == {"name": "Bob", "game_wins": 1, "record": {"wins": 0, "draws": 0, "losses": 1}, "is_league": True, "deck": None, "deck_colours": None}
 
 
 def test_bye_single_row():
@@ -185,3 +185,21 @@ def test_export_to_file_uses_players_flag(tmp_path):
     flags = {p["player1"]["name"]: p["player1"]["is_league"],
              p["player2"]["name"]: p["player2"]["is_league"]}
     assert flags == {"Ann": True, "Guest": False}
+
+
+def test_build_site_data_includes_deck_and_colours():
+    tournaments = [{"id": 1, "name": "A", "event_date": "2026-07-06"}]
+    results = [
+        {"tournament_id": 1, "round": 1, "pairing": 1, "player_name": "Ann", "player_key": "ann",
+         "game_wins": 2, "record_wins": 1, "record_draws": 0, "record_losses": 0,
+         "player_deck": "Izzet Prowess", "player_deck_colours": "UR"},
+        {"tournament_id": 1, "round": 1, "pairing": 1, "player_name": "Bob", "player_key": "bob",
+         "game_wins": 1, "record_wins": 0, "record_draws": 0, "record_losses": 1},
+    ]
+    data = build_site_data(tournaments, results)
+    p = data["tournaments"][0]["rounds"][0]["pairings"][0]
+    by_name = {p["player1"]["name"]: p["player1"], p["player2"]["name"]: p["player2"]}
+    assert by_name["Ann"]["deck"] == "Izzet Prowess"
+    assert by_name["Ann"]["deck_colours"] == "UR"
+    assert by_name["Bob"]["deck"] is None
+    assert by_name["Bob"]["deck_colours"] is None
