@@ -19,10 +19,13 @@ class FakeStore:
     def __init__(self, existing=None):
         self._existing = existing or set()
         self.inserted = []
+        self.upserted_players = []
     def existing_message_ids(self, ids):
         return {i for i in ids if i in self._existing}
     def insert_tournament(self, message_id, channel_id, name, event_date, rounds):
         self.inserted.append((message_id, channel_id, name, event_date, rounds))
+    def upsert_players(self, players):
+        self.upserted_players.append(players)
 
 
 def test_ingest_inserts_and_derives_date_from_timestamp():
@@ -53,3 +56,13 @@ def test_ingest_skips_unparseable_messages():
     store = FakeStore()
     count = run(FakeDiscord([msg]), store, channel_id="111", timezone="Europe/Riga")
     assert count == 0
+
+
+def test_ingest_upserts_players_it_saw():
+    msg = {"id": "m1", "content": SAMPLE, "timestamp": "2026-07-31T10:00:00+00:00"}
+    store = FakeStore()
+    run(FakeDiscord([msg]), store, channel_id="111", timezone="Europe/Riga")
+    keys = {p["player_key"] for p in store.upserted_players[0]}
+    assert keys == {"james doe", "alexey doe"}
+    names = {p["player_key"]: p["display_name"] for p in store.upserted_players[0]}
+    assert names["james doe"] == "James Doe"
