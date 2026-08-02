@@ -126,6 +126,14 @@ def test_main_requires_env(monkeypatch, tmp_path):
         main(["--out", str(tmp_path / "x.json")])
 
 
+def test_normalize_url_strips_trailing_slash():
+    from bot.export import _normalize_url
+
+    assert _normalize_url("https://x.supabase.co/") == "https://x.supabase.co"
+    assert _normalize_url("https://x.supabase.co") == "https://x.supabase.co"
+    assert _normalize_url("https://x.supabase.co//") == "https://x.supabase.co"
+
+
 def test_export_fetches_all_rows_beyond_page_cap(tmp_path):
     # 1500 pairings -> 3000 round_results rows, past the 1000-row cap.
     # An un-paginated fetch would truncate and render dropped rows as false byes.
