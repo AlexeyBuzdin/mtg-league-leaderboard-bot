@@ -8,10 +8,13 @@ const MANA = new Set(['W', 'U', 'B', 'R', 'G']);
 
 function manaIcons(colours) {
   if (!colours) return '';
-  return [...colours.toUpperCase()]
+  const icons = [...colours.toUpperCase()]
     .filter(c => MANA.has(c))
     .map(c => `<img class="mana" src="icons/mana/${c}.svg" alt="${c}" />`)
     .join('');
+  // Wrap in one element so the flex gap of .player/.side applies around the
+  // group, not between each icon.
+  return icons ? `<div class="mana-colours">${icons}</div>` : '';
 }
 
 function deckInfo(player) {

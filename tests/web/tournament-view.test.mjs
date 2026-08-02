@@ -103,6 +103,8 @@ test('renders mana icons for deck colours in order, then the deck name', () => {
   assert.equal((html.match(/class="mana"/g) || []).length, 3);
   assert.match(html, /Jeskai Control/);
   assert.ok(html.indexOf('icons/mana/R.svg') < html.indexOf('Jeskai Control'));
+  // Icons are wrapped in a single element so the flex gap doesn't space them apart.
+  assert.equal((html.match(/class="mana-colours"/g) || []).length, 1);
 });
 
 test('shows no deck info when deck and colours are empty', () => {
