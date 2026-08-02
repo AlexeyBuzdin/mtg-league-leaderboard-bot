@@ -20,12 +20,18 @@ function deckInfo(player) {
   return icons + name;
 }
 
+function leagueTag(player) {
+  return player.is_league === false
+    ? '<span class="non-league">Not from League</span>'
+    : '';
+}
+
 function pairingRow(pairing) {
   const p1 = pairing.player1;
   if (!pairing.player2) {
     return (
       `<div class="pairing bye">` +
-      `<div class="side win">${MARK}<span class="name">${p1.name}</span>${deckInfo(p1)}${recordChip(p1.record)}</div>` +
+      `<div class="side win">${MARK}<span class="name">${p1.name}</span>${deckInfo(p1)}${leagueTag(p1)}${recordChip(p1.record)}</div>` +
       `<div class="score">Bye</div>` +
       `<div class="side right"></div>` +
       `</div>`
@@ -36,9 +42,9 @@ function pairingRow(pairing) {
   const p2Won = p2.game_wins > p1.game_wins;
   return (
     `<div class="pairing">` +
-    `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}<span class="name">${p1.name}</span>${deckInfo(p1)}${recordChip(p1.record)}</div>` +
+    `<div class="side ${p1Won ? 'win' : ''}">${p1Won ? MARK : ''}<span class="name">${p1.name}</span>${deckInfo(p1)}${leagueTag(p1)}${recordChip(p1.record)}</div>` +
     `<div class="score">${p1.game_wins}-${p2.game_wins}</div>` +
-    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${deckInfo(p2)}${p2Won ? MARK : ''}</div>` +
+    `<div class="side right ${p2Won ? 'win' : ''}">${recordChip(p2.record)}<span class="name">${p2.name}</span>${deckInfo(p2)}${leagueTag(p2)}${p2Won ? MARK : ''}</div>` +
     `</div>`
   );
 }
@@ -66,7 +72,7 @@ function renderStandings(tournament) {
       return (
         `<div class="row">` +
         `<div class="rank">${rank}</div>` +
-        `<div class="player">${player.name}${deckInfo(player)}</div>` +
+        `<div class="player">${player.name}${deckInfo(player)}${leagueTag(player)}</div>` +
         `<div class="num">${r.wins}-${r.draws}-${r.losses}</div>` +
         `<div class="num strong">${points}</div>` +
         `</div>`
