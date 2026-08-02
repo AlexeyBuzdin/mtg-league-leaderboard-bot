@@ -67,6 +67,8 @@ class FakeStore2:
     def fetch_results_in_window(self, start, end):
         self.window = (start, end)
         return self._rows
+    def fetch_league_keys(self):
+        return getattr(self, "league_keys", set())
 
 
 class FakeDiscord2:
@@ -82,6 +84,7 @@ def test_leaderboard_run_posts_embed():
         {"points": 7, "player_key": "nikita powers", "player_name": "Nikita Powers"},
     ]
     store = FakeStore2(rows)
+    store.league_keys = {"james smith", "nikita powers"}
     discord = FakeDiscord2()
     now = datetime(2026, 7, 15, 9, 0, tzinfo=ZoneInfo("Europe/Riga"))
     posted = leaderboard_run(discord, store, channel_id="222", now=now)
@@ -100,3 +103,19 @@ def test_leaderboard_run_skips_when_empty():
     posted = leaderboard_run(discord, store, channel_id="222", now=now)
     assert posted is False
     assert discord.posted is None
+
+
+def test_leaderboard_run_excludes_non_league():
+    rows = [
+        {"player_key": "ann", "player_name": "Ann", "points": 9},
+        {"player_key": "guest", "player_name": "Guest", "points": 12},
+    ]
+    store = FakeStore2(rows)
+    store.league_keys = {"ann"}
+    discord = FakeDiscord2()
+    now = datetime(2026, 7, 15, 9, 0, tzinfo=ZoneInfo("Europe/Riga"))
+    posted = leaderboard_run(discord, store, channel_id="222", now=now)
+    assert posted is True
+    channel_id, embeds = discord.posted
+    text = " ".join(e["description"] for e in embeds)
+    assert "Ann" in text and "Guest" not in text

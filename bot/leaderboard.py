@@ -63,6 +63,8 @@ _MONTHS = [
 def run(discord, store, channel_id: str, now: datetime) -> bool:
     start, end = month_window(now)
     rows = store.fetch_results_in_window(start, end)
+    league_keys = store.fetch_league_keys()
+    rows = [r for r in rows if r["player_key"] in league_keys]
     totals = aggregate_totals(rows)
     if not totals:
         return False

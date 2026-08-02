@@ -19,8 +19,8 @@ def test_full_pairing_two_rows():
     assert t["date"] == "2026-07-06"
     p = t["rounds"][0]["pairings"][0]
     assert p["pairing"] == 1
-    assert p["player1"] == {"name": "Ann", "game_wins": 2, "record": {"wins": 1, "draws": 0, "losses": 0}}
-    assert p["player2"] == {"name": "Bob", "game_wins": 1, "record": {"wins": 0, "draws": 0, "losses": 1}}
+    assert p["player1"] == {"name": "Ann", "game_wins": 2, "record": {"wins": 1, "draws": 0, "losses": 0}, "is_league": True}
+    assert p["player2"] == {"name": "Bob", "game_wins": 1, "record": {"wins": 0, "draws": 0, "losses": 1}, "is_league": True}
 
 
 def test_bye_single_row():
@@ -62,6 +62,24 @@ def test_null_name_fallback():
     assert data["tournaments"][0]["name"] == "Tournament"
 
 
+def test_build_site_data_tags_is_league():
+    tournaments = [{"id": 1, "name": "A", "event_date": "2026-07-06"}]
+    results = [res(1, 1, 1, "Ann", "ann", 2, 1, 0, 0),
+               res(1, 1, 1, "Guest", "guest", 1, 0, 0, 1)]
+    data = build_site_data(tournaments, results, {"ann"})
+    p = data["tournaments"][0]["rounds"][0]["pairings"][0]
+    by_name = {p["player1"]["name"]: p["player1"], p["player2"]["name"]: p["player2"]}
+    assert by_name["Ann"]["is_league"] is True
+    assert by_name["Guest"]["is_league"] is False
+
+
+def test_build_site_data_defaults_all_league_when_keys_none():
+    tournaments = [{"id": 1, "name": "A", "event_date": "2026-07-06"}]
+    results = [res(1, 1, 1, "Ann", "ann", 2, 1, 0, 0)]
+    data = build_site_data(tournaments, results)
+    assert data["tournaments"][0]["rounds"][0]["pairings"][0]["player1"]["is_league"] is True
+
+
 import json
 import pytest
 from bot.export import export_to_file, main
@@ -93,8 +111,12 @@ class _FakeQuery:
 
 
 class _FakeClient:
-    def __init__(self, tournaments, results):
-        self._tables = {"tournaments": tournaments, "round_results": results}
+    def __init__(self, tournaments, results, players=None):
+        self._tables = {
+            "tournaments": tournaments,
+            "round_results": results,
+            "players": players or [],
+        }
 
     def table(self, name):
         return _FakeQuery(self._tables[name])
@@ -148,3 +170,18 @@ def test_export_fetches_all_rows_beyond_page_cap(tmp_path):
     pairings = data["tournaments"][0]["rounds"][0]["pairings"]
     assert len(pairings) == 1500
     assert all(p["player2"] is not None for p in pairings)
+
+
+def test_export_to_file_uses_players_flag(tmp_path):
+    tournaments = [{"id": 1, "name": "A", "event_date": "2026-07-06"}]
+    results = [res(1, 1, 1, "Ann", "ann", 2, 1, 0, 0),
+               res(1, 1, 1, "Guest", "guest", 1, 0, 0, 1)]
+    players = [{"player_key": "ann", "is_league": True},
+               {"player_key": "guest", "is_league": False}]
+    out = tmp_path / "t.json"
+    export_to_file(_FakeClient(tournaments, results, players), str(out))
+    data = json.loads(out.read_text(encoding="utf-8"))
+    p = data["tournaments"][0]["rounds"][0]["pairings"][0]
+    flags = {p["player1"]["name"]: p["player1"]["is_league"],
+             p["player2"]["name"]: p["player2"]["is_league"]}
+    assert flags == {"Ann": True, "Guest": False}
