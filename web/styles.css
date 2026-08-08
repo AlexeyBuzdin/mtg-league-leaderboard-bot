@@ -132,3 +132,35 @@ select {
   background: var(--surface);
   white-space: nowrap;
 }
+.why {
+  margin-left: 6px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: 1px;
+}
+.why:hover { border-color: var(--accent-text); color: var(--accent-text); }
+.breakdown-popover {
+  position: absolute;
+  z-index: 20;
+  max-width: 260px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text);
+}
+.bd-head { font-weight: 500; margin-bottom: 8px; }
+.bd-tournament { color: var(--muted); font-size: 12px; margin: 8px 0 4px; }
+.bd-item, .bd-subtotal, .bd-total { display: flex; justify-content: space-between; gap: 16px; }
+.bd-subtotal { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 3px; color: var(--muted); }
+.bd-total { margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 500; }

@@ -40,6 +40,12 @@ export function playerTournamentStats(tournament) {
   return stats;
 }
 
+const ORD = ['1st', '2nd', '3rd'];
+
+function plural(n, word) {
+  return `${n} ${n === 1 ? word : word + 's'}`;
+}
+
 export function tournamentScores(tournament) {
   const stats = playerTournamentStats(tournament);
   const summer = seasonKey(tournament.date) === '2026-2';
@@ -49,12 +55,22 @@ export function tournamentScores(tournament) {
   const bonus = [3, 2, 1];
   const scores = {};
   ranked.forEach((p, i) => {
+    const items = [];
     if (summer) {
-      const placement = i < 3 ? bonus[i] : 0;
-      scores[p.name] = { score: placement + 2 * p.record.wins + p.record.draws + 1, isLeague: p.isLeague };
+      if (i < 3) items.push({ label: `${ORD[i]} place`, points: bonus[i] });
+      if (p.record.wins > 0) items.push({ label: `${plural(p.record.wins, 'win')} (×2)`, points: 2 * p.record.wins });
+      if (p.record.draws > 0) items.push({ label: `${plural(p.record.draws, 'draw')} (×1)`, points: p.record.draws });
+      items.push({ label: 'attendance', points: 1 });
     } else {
-      scores[p.name] = { score: points(p.record), isLeague: p.isLeague };
+      if (p.record.wins > 0) items.push({ label: `${plural(p.record.wins, 'win')} (×3)`, points: 3 * p.record.wins });
+      if (p.record.draws > 0) items.push({ label: `${plural(p.record.draws, 'draw')} (×1)`, points: p.record.draws });
     }
+    const subtotal = items.reduce((sum, it) => sum + it.points, 0);
+    scores[p.name] = {
+      score: subtotal,
+      isLeague: p.isLeague,
+      breakdown: { tournament: tournament.name, date: tournament.date, items, subtotal },
+    };
   });
   return scores;
 }
@@ -64,11 +80,12 @@ export function seasonLeaderboard(tournaments, key) {
   for (const tournament of tournaments) {
     if (seasonKey(tournament.date) !== key) continue;
     const scored = tournamentScores(tournament);
-    for (const [name, { score, isLeague }] of Object.entries(scored)) {
+    for (const [name, { score, isLeague, breakdown }] of Object.entries(scored)) {
       if (!isLeague) continue;
-      if (!agg[name]) agg[name] = { name, points: 0, events: 0 };
+      if (!agg[name]) agg[name] = { name, points: 0, events: 0, breakdown: [] };
       agg[name].points += score;
       agg[name].events += 1;
+      agg[name].breakdown.push(breakdown);
     }
   }
   return Object.values(agg).sort(

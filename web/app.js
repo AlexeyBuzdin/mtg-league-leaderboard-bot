@@ -1,6 +1,6 @@
 import { seasonKey, seasonLabel } from './lib/season.js';
 import { seasonLeaderboard } from './lib/leaderboard.js';
-import { renderLeaderboard } from './ui/leaderboard-view.js';
+import { renderLeaderboard, renderBreakdown } from './ui/leaderboard-view.js';
 import { renderTournament } from './ui/tournament-view.js';
 
 const state = { tournaments: [] };
@@ -39,20 +39,60 @@ function setupTabs() {
 
 function setupLeaderboard() {
   const select = document.getElementById('q-sel');
+  const body = document.getElementById('lb-body');
+  const pop = document.getElementById('breakdown-popover');
+  let currentRows = [];
+
   const byKey = new Map();
   for (const t of state.tournaments) byKey.set(seasonKey(t.date), seasonLabel(t.date));
   const keys = [...byKey.keys()].sort().reverse();
   select.innerHTML = keys
     .map(k => `<option value="${k}">${byKey.get(k)}</option>`)
     .join('');
+
+  function hidePopover() {
+    pop.hidden = true;
+    delete pop.dataset.index;
+  }
+
   function render() {
     const key = select.value;
-    const rows = seasonLeaderboard(state.tournaments, key);
+    currentRows = seasonLeaderboard(state.tournaments, key);
     const count = state.tournaments.filter(t => seasonKey(t.date) === key).length;
     document.getElementById('q-meta').textContent =
-      `${count} tournaments · ${rows.length} players`;
-    document.getElementById('lb-body').innerHTML = renderLeaderboard(rows);
+      `${count} tournaments · ${currentRows.length} players`;
+    body.innerHTML = renderLeaderboard(currentRows);
+    hidePopover();
   }
+
+  body.addEventListener('click', event => {
+    const btn = event.target.closest('.why');
+    if (!btn) return;
+    event.stopPropagation();
+    if (!pop.hidden && pop.dataset.index === btn.dataset.index) {
+      hidePopover();
+      return;
+    }
+    pop.innerHTML = renderBreakdown(currentRows[Number(btn.dataset.index)]);
+    pop.dataset.index = btn.dataset.index;
+    pop.hidden = false;
+    const rect = btn.getBoundingClientRect();
+    pop.style.top = `${window.scrollY + rect.bottom + 6}px`;
+    let left = window.scrollX + rect.left;
+    const maxLeft = window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8;
+    if (left > maxLeft) left = Math.max(8, maxLeft);
+    pop.style.left = `${left}px`;
+  });
+
+  document.addEventListener('click', event => {
+    if (pop.hidden) return;
+    if (pop.contains(event.target) || event.target.closest('.why')) return;
+    hidePopover();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') hidePopover();
+  });
+
   select.addEventListener('change', render);
   render();
 }
