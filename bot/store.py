@@ -73,6 +73,42 @@ class Store:
         ]
         self._db.table("round_results").insert(rows).execute()
 
+    def fetch_tournament_stats(self, start: date, end: date) -> list[dict]:
+        resp = (
+            self._db.table("round_results")
+            .select(
+                "tournament_id, round, player_key, player_name, game_wins, "
+                "record_wins, record_draws, tournaments!inner(event_date)"
+            )
+            .gte("tournaments.event_date", start.isoformat())
+            .lte("tournaments.event_date", end.isoformat())
+            .order("event_date", desc=False, foreign_table="tournaments")
+            .execute()
+        )
+        reduced: dict[tuple, dict] = {}
+        for row in resp.data:
+            key = (row["tournament_id"], row["player_key"])
+            cur = reduced.get(key)
+            if cur is None:
+                reduced[key] = {
+                    "tournament_id": row["tournament_id"],
+                    "event_date": row["tournaments"]["event_date"],
+                    "player_key": row["player_key"],
+                    "player_name": row["player_name"],
+                    "record_wins": row["record_wins"],
+                    "record_draws": row["record_draws"],
+                    "game_wins": row["game_wins"] or 0,
+                    "_round": row["round"],
+                }
+            else:
+                cur["game_wins"] += row["game_wins"] or 0
+                if row["round"] > cur["_round"]:
+                    cur["_round"] = row["round"]
+                    cur["record_wins"] = row["record_wins"]
+                    cur["record_draws"] = row["record_draws"]
+                    cur["player_name"] = row["player_name"]
+        return [{k: v for k, v in r.items() if k != "_round"} for r in reduced.values()]
+
     def fetch_results_in_window(self, start: date, end: date) -> list[dict]:
         resp = (
             self._db.table("round_results")

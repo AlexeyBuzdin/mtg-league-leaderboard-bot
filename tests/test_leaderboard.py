@@ -61,12 +61,12 @@ from bot.leaderboard import run as leaderboard_run
 
 
 class FakeStore2:
-    def __init__(self, rows):
-        self._rows = rows
+    def __init__(self, stats):
+        self._stats = stats
         self.window = None
-    def fetch_results_in_window(self, start, end):
+    def fetch_tournament_stats(self, start, end):
         self.window = (start, end)
-        return self._rows
+        return self._stats
     def fetch_league_keys(self):
         return getattr(self, "league_keys", set())
 
@@ -79,11 +79,13 @@ class FakeDiscord2:
 
 
 def test_leaderboard_run_posts_embed():
-    rows = [
-        {"points": 9, "player_key": "james smith", "player_name": "James Smith"},
-        {"points": 7, "player_key": "nikita powers", "player_name": "Nikita Powers"},
+    stats = [
+        {"tournament_id": 1, "player_key": "james smith", "player_name": "James Smith",
+         "record_wins": 3, "record_draws": 0, "game_wins": 6, "event_date": "2026-07-05"},
+        {"tournament_id": 1, "player_key": "nikita powers", "player_name": "Nikita Powers",
+         "record_wins": 2, "record_draws": 0, "game_wins": 4, "event_date": "2026-07-05"},
     ]
-    store = FakeStore2(rows)
+    store = FakeStore2(stats)
     store.league_keys = {"james smith", "nikita powers"}
     discord = FakeDiscord2()
     now = datetime(2026, 7, 15, 9, 0, tzinfo=ZoneInfo("Europe/Riga"))
@@ -93,7 +95,7 @@ def test_leaderboard_run_posts_embed():
     channel_id, embeds = discord.posted
     assert channel_id == "222"
     assert "July 2026" in embeds[0]["title"]
-    assert "1. James Smith — 9 pts" in embeds[0]["description"]
+    assert "1. James Smith — 10 pts" in embeds[0]["description"]
 
 
 def test_leaderboard_run_skips_when_empty():
@@ -106,11 +108,13 @@ def test_leaderboard_run_skips_when_empty():
 
 
 def test_leaderboard_run_excludes_non_league():
-    rows = [
-        {"player_key": "ann", "player_name": "Ann", "points": 9},
-        {"player_key": "guest", "player_name": "Guest", "points": 12},
+    stats = [
+        {"tournament_id": 1, "player_key": "ann", "player_name": "Ann",
+         "record_wins": 1, "record_draws": 0, "game_wins": 2, "event_date": "2026-07-05"},
+        {"tournament_id": 1, "player_key": "guest", "player_name": "Guest",
+         "record_wins": 2, "record_draws": 0, "game_wins": 4, "event_date": "2026-07-05"},
     ]
-    store = FakeStore2(rows)
+    store = FakeStore2(stats)
     store.league_keys = {"ann"}
     discord = FakeDiscord2()
     now = datetime(2026, 7, 15, 9, 0, tzinfo=ZoneInfo("Europe/Riga"))
@@ -119,3 +123,38 @@ def test_leaderboard_run_excludes_non_league():
     channel_id, embeds = discord.posted
     text = " ".join(e["description"] for e in embeds)
     assert "Ann" in text and "Guest" not in text
+
+
+from bot.leaderboard import season_totals
+
+
+def _stat(tid, key, name, w, d, gw, date_="2026-07-06"):
+    return {"tournament_id": tid, "player_key": key, "player_name": name,
+            "record_wins": w, "record_draws": d, "game_wins": gw, "event_date": date_}
+
+
+def test_season_totals_summer_placement_and_attendance():
+    stats = [
+        _stat(1, "ann", "Ann", 2, 0, 4),
+        _stat(1, "bob", "Bob", 0, 0, 1),
+        _stat(1, "cara", "Cara", 1, 0, 2),
+    ]
+    totals = season_totals(stats, {"ann", "bob", "cara"})
+    by = {t.player_key: t for t in totals}
+    assert by["ann"].points == 8
+    assert by["cara"].points == 5
+    assert by["bob"].points == 2
+    assert [t.player_key for t in totals] == ["ann", "cara", "bob"]
+
+
+def test_season_totals_excludes_non_league_but_ranks_them():
+    stats = [_stat(1, "guest", "Guest", 1, 0, 2), _stat(1, "ann", "Ann", 0, 0, 1)]
+    totals = season_totals(stats, {"ann"})
+    assert [t.player_key for t in totals] == ["ann"]
+    assert totals[0].points == 3
+
+
+def test_season_totals_non_summer_uses_standard():
+    stats = [_stat(1, "ann", "Ann", 1, 0, 2, date_="2026-04-12")]
+    totals = season_totals(stats, {"ann"})
+    assert totals[0].points == 3

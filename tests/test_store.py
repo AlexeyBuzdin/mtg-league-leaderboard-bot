@@ -173,3 +173,25 @@ def test_fetch_league_keys_returns_only_league():
     ])
     store = Store(FakeSupabase({"players": players}))
     assert store.fetch_league_keys() == {"ann"}
+
+
+def test_fetch_tournament_stats_reduces_final_record_and_sums_game_wins():
+    rows = [
+        {"tournament_id": 7, "round": 1, "player_key": "ann", "player_name": "Ann",
+         "game_wins": 2, "record_wins": 1, "record_draws": 0, "tournaments": {"event_date": "2026-07-06"}},
+        {"tournament_id": 7, "round": 2, "player_key": "ann", "player_name": "Ann",
+         "game_wins": 1, "record_wins": 2, "record_draws": 0, "tournaments": {"event_date": "2026-07-06"}},
+        {"tournament_id": 7, "round": 1, "player_key": "bob", "player_name": "Bob",
+         "game_wins": 1, "record_wins": 0, "record_draws": 0, "tournaments": {"event_date": "2026-07-06"}},
+    ]
+    rr = FakeTable(rows=rows)
+    store = Store(FakeSupabase({"round_results": rr}))
+    out = store.fetch_tournament_stats(date(2026, 7, 1), date(2026, 7, 31))
+    by_key = {r["player_key"]: r for r in out}
+    assert by_key["ann"]["record_wins"] == 2
+    assert by_key["ann"]["record_draws"] == 0
+    assert by_key["ann"]["game_wins"] == 3
+    assert by_key["ann"]["event_date"] == "2026-07-06"
+    assert by_key["ann"]["tournament_id"] == 7
+    assert by_key["bob"]["game_wins"] == 1
+    assert ("gte", "tournaments.event_date", "2026-07-01") in rr.calls
