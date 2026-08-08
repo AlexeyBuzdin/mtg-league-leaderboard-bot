@@ -110,3 +110,40 @@ test('a non-summer season still uses 3*wins + draws', () => {
   const board = seasonLeaderboard([t], '2026-1');
   assert.deepEqual(board.map(r => [r.name, r.points]), [['Ann', 3], ['Bob', 0]]);
 });
+
+test('seasonLeaderboard attaches an itemized breakdown (summer)', () => {
+  const t = { id: 't', name: 'Showdown', date: '2026-07-10', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(2, 1, 0) }, player2: { name: 'Bob', game_wins: 1, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const board = seasonLeaderboard([t], '2026-2');
+  const ann = board.find(r => r.name === 'Ann');
+  assert.equal(ann.breakdown.length, 1);
+  const e = ann.breakdown[0];
+  assert.equal(e.tournament, 'Showdown');
+  assert.equal(e.date, '2026-07-10');
+  assert.deepEqual(e.items, [
+    { label: '1st place', points: 3 },
+    { label: '2 wins (×2)', points: 4 },
+    { label: '1 draw (×1)', points: 1 },
+    { label: 'attendance', points: 1 },
+  ]);
+  assert.equal(e.subtotal, 9);
+  assert.equal(ann.points, 9);
+});
+
+test('breakdown omits zero components and uses ×3 off-summer', () => {
+  const t = { id: 't', name: 'Spring', date: '2026-04-12', rounds: [
+    { round: 1, pairings: [
+      { pairing: 1, player1: { name: 'Ann', game_wins: 2, record: rec(2, 0, 0) }, player2: { name: 'Bob', game_wins: 0, record: rec(0, 0, 1) } },
+    ] },
+  ] };
+  const board = seasonLeaderboard([t], '2026-1');
+  const ann = board.find(r => r.name === 'Ann');
+  assert.deepEqual(ann.breakdown[0].items, [{ label: '2 wins (×3)', points: 6 }]);
+  assert.equal(ann.breakdown[0].subtotal, 6);
+  const bob = board.find(r => r.name === 'Bob');
+  assert.deepEqual(bob.breakdown[0].items, []);
+  assert.equal(bob.points, 0);
+});
