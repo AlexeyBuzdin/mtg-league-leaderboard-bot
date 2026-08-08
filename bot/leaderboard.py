@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
 
@@ -60,12 +61,60 @@ _MONTHS = [
 ]
 
 
+def _is_summer_2026(event_date) -> bool:
+    if isinstance(event_date, str):
+        year, month = int(event_date[:4]), int(event_date[5:7])
+    else:
+        year, month = event_date.year, event_date.month
+    return year == 2026 and month in (6, 7, 8)
+
+
+def _tournament_scores(rows: list[dict]) -> dict:
+    summer = _is_summer_2026(rows[0]["event_date"])
+    ranked = sorted(
+        rows,
+        key=lambda r: (
+            -(3 * r["record_wins"] + r["record_draws"]),
+            -(r["game_wins"] or 0),
+            r["player_name"].lower(),
+        ),
+    )
+    bonus = [3, 2, 1]
+    out: dict = {}
+    for i, r in enumerate(ranked):
+        if summer:
+            placement = bonus[i] if i < 3 else 0
+            score = placement + 2 * r["record_wins"] + r["record_draws"] + 1
+        else:
+            score = 3 * r["record_wins"] + r["record_draws"]
+        out[r["player_key"]] = {"player_name": r["player_name"], "score": score}
+    return out
+
+
+def season_totals(stats: list[dict], league_keys: set[str]) -> list[PlayerTotal]:
+    by_tournament: dict = defaultdict(list)
+    for row in stats:
+        by_tournament[row["tournament_id"]].append(row)
+    acc: dict[str, PlayerTotal] = {}
+    for rows in by_tournament.values():
+        for key, s in _tournament_scores(rows).items():
+            if key not in league_keys:
+                continue
+            cur = acc.get(key)
+            if cur is None:
+                acc[key] = PlayerTotal(key, s["player_name"], s["score"], 1)
+            else:
+                acc[key] = PlayerTotal(
+                    key, s["player_name"], cur.points + s["score"], cur.events + 1
+                )
+    return sorted(acc.values(), key=lambda t: (-t.points, t.display_name.lower()))
+
+
 def run(discord, store, channel_id: str, now: datetime) -> bool:
     start, end = month_window(now)
-    rows = store.fetch_results_in_window(start, end)
+    stats = store.fetch_tournament_stats(start, end)
     league_keys = store.fetch_league_keys()
-    rows = [r for r in rows if r["player_key"] in league_keys]
-    totals = aggregate_totals(rows)
+    totals = season_totals(stats, league_keys)
     if not totals:
         return False
     label = f"{_MONTHS[start.month - 1]} {start.year}"
