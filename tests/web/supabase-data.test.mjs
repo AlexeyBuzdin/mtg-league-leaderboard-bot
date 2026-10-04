@@ -64,3 +64,14 @@ test('loadSiteData returns raw players including display_name', async () => {
   assert.deepEqual(data.players, [{ player_key: 'ann', display_name: 'Ann', is_league: true }]);
   assert.equal(data.tournaments[0].rounds[0].pairings[0].player1.name, 'Ann');
 });
+
+test('loadSiteData returns achievements mapped by name', async () => {
+  const client = new FakeClient({
+    tournaments: [{ id: 1, name: 'A', event_date: '2026-07-06' }],
+    round_results: [res(1, 1, 1, 'Ann', 'ann', 2, 1, 0, 0)],
+    players: [{ player_key: 'ann', display_name: 'Ann', is_league: true }],
+    achievements: [{ player_key: 'ann', label: '🏆Summer 2026' }],
+  });
+  const data = await loadSiteData(client);
+  assert.deepEqual(data.achievements.get('Ann'), ['🏆Summer 2026']);
+});

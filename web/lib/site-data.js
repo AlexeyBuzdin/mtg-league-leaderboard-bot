@@ -61,3 +61,20 @@ export function buildSiteData(tournaments, results, leagueKeys = null) {
   }
   return { tournaments: outTournaments };
 }
+
+export function achievementsByName(achievements, results, players) {
+  const byKey = new Map();
+  for (const a of achievements) {
+    if (!byKey.has(a.player_key)) byKey.set(a.player_key, []);
+    byKey.get(a.player_key).push(a.label);
+  }
+  const byName = new Map();
+  const attach = (name, key) => {
+    if (name == null) return;
+    const labels = byKey.get(key);
+    if (labels) byName.set(name, labels);
+  };
+  for (const r of results) attach(r.player_name, r.player_key);
+  for (const p of players) attach(p.display_name, p.player_key);
+  return byName;
+}

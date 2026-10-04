@@ -33,7 +33,8 @@ export function renderAccount(user, linked) {
   // admin-link prompt.
   const body = linked
     ? '<div class="account-profile">' +
-      renderProfile(linked.name, linked.profile, linked.seasons, linked.selectedSeason, { showBack: false }) +
+      renderProfile(linked.name, linked.profile, linked.seasons, linked.selectedSeason,
+        { showBack: false, achievements: linked.achievements ?? [] }) +
       '</div>'
     : '<p class="profile-empty">Not linked yet — ask an admin to link your account to a player.</p>';
   return back + head + body;
