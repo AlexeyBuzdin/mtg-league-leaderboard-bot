@@ -89,3 +89,18 @@ test('renderProfile omits the back link when showBack is false (embedded)', () =
   assert.ok(!embedded.includes('class="back-link"'));
   assert.ok(embedded.includes('Placements')); // body still rendered
 });
+
+test('renders achievements as badges before placements when present', () => {
+  const html = renderProfile('Ann', profile, [], 'all', {
+    achievements: ['🏆Summer 2026', '🥈Spring 2026'],
+  });
+  assert.match(html, /class="profile-section">Achievements</);
+  assert.match(html, /class="achievement">🏆Summer 2026</);
+  assert.ok(html.indexOf('Achievements') < html.indexOf('Placements'));
+  assert.ok(html.indexOf('🏆Summer 2026') < html.indexOf('Placements'));
+});
+
+test('omits the achievements section when there are none', () => {
+  const html = renderProfile('Ann', profile);
+  assert.ok(!html.includes('Achievements'));
+});

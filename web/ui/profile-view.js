@@ -16,7 +16,7 @@ function seasonPicker(seasons = [], selected = 'all') {
 }
 
 export function renderProfile(name, profile, seasons = [], selectedSeason = 'all', options = {}) {
-  const { showBack = true } = options;
+  const { showBack = true, achievements = [] } = options;
   const back = showBack ? '<a class="back-link" href="#">← Back</a>' : '';
   const header =
     `<div class="profile-header"><h1 class="profile-name">${name}</h1>` +
@@ -46,6 +46,13 @@ export function renderProfile(name, profile, seasons = [], selectedSeason = 'all
     favColours +
     '</div>';
 
+  const achievementsSection = achievements.length
+    ? '<h2 class="profile-section">Achievements</h2>' +
+      '<div class="achievements">' +
+      achievements.map(a => `<span class="achievement">${a}</span>`).join('') +
+      '</div>'
+    : '';
+
   const decks =
     '<h2 class="profile-section">Decks</h2>' +
     statList(
@@ -70,5 +77,5 @@ export function renderProfile(name, profile, seasons = [], selectedSeason = 'all
       'No head-to-head data yet.',
     );
 
-  return back + header + summary + placements + decks + rivals + friends;
+  return back + header + summary + achievementsSection + placements + decks + rivals + friends;
 }
