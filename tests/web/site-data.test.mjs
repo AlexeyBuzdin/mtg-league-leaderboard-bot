@@ -99,3 +99,27 @@ test('deck, colours and standing are carried through', () => {
   assert.equal(byName.Bob.deck_colours, null);
   assert.equal(byName.Bob.standing, 5);
 });
+
+import { achievementsByName } from '../../web/lib/site-data.js';
+
+test('achievementsByName maps labels onto every name sharing the key', () => {
+  const achievements = [
+    { player_key: 'marcis k', label: '🏆Summer 2026' },
+    { player_key: 'marcis k', label: '🥈Spring 2026' },
+  ];
+  const results = [
+    { player_name: 'Marcis K', player_key: 'marcis k' },
+    { player_name: 'Other P', player_key: 'other p' },
+  ];
+  const players = [{ player_key: 'marcis k', display_name: 'Marcis K' }];
+  const map = achievementsByName(achievements, results, players);
+  assert.deepEqual(map.get('Marcis K'), ['🏆Summer 2026', '🥈Spring 2026']);
+  assert.equal(map.has('Other P'), false);
+});
+
+test('achievementsByName ignores achievements whose key has no name', () => {
+  const map = achievementsByName(
+    [{ player_key: 'ghost', label: 'x' }], [], [],
+  );
+  assert.equal(map.size, 0);
+});
