@@ -79,3 +79,19 @@ alter table profiles enable row level security;
 drop policy if exists "own profile read" on profiles;
 create policy "own profile read" on profiles
   for select to authenticated using (auth.uid() = id);
+
+-- Player achievements: short badge labels (emoji + text) shown on the profile.
+-- Linked by player_key (no FK, so legacy players off the is_league roster qualify).
+create table if not exists achievements (
+  id         bigint generated always as identity primary key,
+  player_key text not null,
+  label      text not null,
+  created_at timestamptz not null default now(),
+  unique (player_key, label)
+);
+create index if not exists achievements_player_key_idx on achievements (player_key);
+
+alter table achievements enable row level security;
+drop policy if exists "public read achievements" on achievements;
+create policy "public read achievements" on achievements
+  for select to anon, authenticated using (true);
