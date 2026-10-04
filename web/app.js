@@ -17,7 +17,7 @@ import { isWithinDays, normalizeColours } from './lib/deck.js';
 import { saveDeck } from './lib/deck-edit.js';
 
 const state = {
-  tournaments: [], players: [], user: null, associatedName: null,
+  tournaments: [], achievements: new Map(), players: [], user: null, associatedName: null,
   renderLeaderboard: null, showAccount: null, renderTournamentView: null,
 };
 
@@ -36,6 +36,7 @@ async function boot() {
     const data = await loadSiteData(client);
     state.tournaments = data.tournaments;
     state.players = data.players;
+    state.achievements = data.achievements;
   } catch {
     const message = '<div class="empty">Couldn\'t load data.</div>';
     document.getElementById('lb-body').innerHTML = message;
@@ -117,6 +118,7 @@ function setupTabs() {
       : state.tournaments.filter(t => seasonKey(t.date) === season);
     profileView.innerHTML = renderProfile(
       name, playerProfile(tournaments, name), seasonsForPlayer(name), season,
+      { achievements: state.achievements.get(name) ?? [] },
     );
   }
   function showProfile(name) {
@@ -137,6 +139,7 @@ function setupTabs() {
     return {
       name, profile: playerProfile(tournaments, name),
       seasons: seasonsForPlayer(name), selectedSeason: season,
+      achievements: state.achievements.get(name) ?? [],
     };
   }
   function showAccount() {
@@ -309,6 +312,7 @@ function setupTournaments() {
       const data = await loadSiteData(client);
       state.tournaments = data.tournaments;
       state.players = data.players;
+      state.achievements = data.achievements;
       render();
       if (state.renderLeaderboard) state.renderLeaderboard();
     } catch {

@@ -284,6 +284,15 @@ select {
 }
 .placement .medal { font-size: 20px; }
 .placement .pcount { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.achievements { display: flex; flex-wrap: wrap; gap: 8px; }
+.achievement {
+  font-size: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
 .profile-list { list-style: none; margin: 0; padding: 0; }
 .profile-item {
   display: flex;
